@@ -65,18 +65,40 @@ const Home = () => {
                   🏢
                 </div>
                 <div>
-                 
-                  <p className="font-semibold text-gray-800">
-                  
-                    Tech Company
-                  </p>
-                  <p className="text-sm text-gray-500">
-                   
-                    Remote • 3 Months
-                  </p>
+                  <p className="font-semibold text-gray-800">Tech Company</p>
+                  <p className="text-sm text-gray-500">Remote • 3 Months</p>
                 </div>
               </div>
 
+              <div className="flex flex-wrap gap-2 mb-6">
+                <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm">
+                  React
+                </span>
+                <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm">
+                  Javascript
+                </span>
+                <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm">
+                  HTML/CSS
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Stipend</p>
+                  <p className="font-bold text-gray-900">₹10,000 / month</p>
+                </div>
+
+                <button className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+                  Views Details
+                </button>
+              </div>
+            </div>
+
+            <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg px-5 py-4 border border-gray-100">
+              <p className="text-sm text-gray-500">Application Status</p>
+              <p className="text-green-600 font-semibold">
+                ✓ Open for Applications
+              </p>
             </div>
           </div>
         </div>
