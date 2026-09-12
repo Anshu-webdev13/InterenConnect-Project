@@ -62,22 +62,21 @@ const Home = () => {
 
               <div className="flex items-center gap-3 mb-6">
                 <div className="bg-gray-100 w-12 h-12 rounded-lg flex items-center justify-center text-xl">
-                  {" "}
-                  🏢{" "}
+                  🏢
                 </div>
                 <div>
-                  {" "}
+                 
                   <p className="font-semibold text-gray-800">
-                    {" "}
-                    Tech Company{" "}
-                  </p>{" "}
+                  
+                    Tech Company
+                  </p>
                   <p className="text-sm text-gray-500">
-                    {" "}
-                    Remote • 3 Months{" "}
-                  </p>{" "}
+                   
+                    Remote • 3 Months
+                  </p>
                 </div>
               </div>
-              
+
             </div>
           </div>
         </div>
