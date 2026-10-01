@@ -9,7 +9,7 @@ const Applynow = () => {
             Apply For Internship
           </h1>
           <p className="text-gray-800 mt-2">
-            Web Development Intern at Tech solution
+            Web Development Intern at Tech Solution
           </p>
           <form className="mt-8 space-y-5">
             <div>
