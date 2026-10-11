@@ -218,7 +218,7 @@ const StudentProfile = () => {
 
             <div className="mt-8 pt-6 border-t border-gray-200">
               <Link
-                to="/student-dashboard"
+                to="/studentdashboard"
                 className="text-blue-600 font-medium hover:underline"
               >
                 ← Back to Student Dashboard
