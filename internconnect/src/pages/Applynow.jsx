@@ -1,6 +1,8 @@
-import React from 'react'
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Applynow = () => {
+  const navigate = useNavigate();
   return (
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="max-w-3xl mx-auto px-6">
@@ -11,7 +13,13 @@ const Applynow = () => {
           <p className="text-gray-800 mt-2">
             Web Development Intern at Tech Solution
           </p>
-          <form className="mt-8 space-y-5">
+          <form
+            className="mt-8 space-y-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              navigate("/applicationsuccess");
+            }}
+          >
             <div>
               <label className="block text-gray-700 font-medium mb-2">
                 Full Name
@@ -20,6 +28,7 @@ const Applynow = () => {
               <input
                 type="text"
                 placeholder="Enter your full name"
+                required
                 className="w-full border border-gray-300 rounded-md px-4 py-3"
               />
             </div>
@@ -106,6 +115,6 @@ const Applynow = () => {
       </div>
     </div>
   );
-}
+};
 
-export default Applynow
+export default Applynow;
