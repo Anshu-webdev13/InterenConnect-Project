@@ -13,6 +13,8 @@ import EditProfile from "./pages/EditProfile.jsx";
 import Notification from "./pages/Notification.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Register from "./pages/Register.jsx";
+import Login from "./pages/Login.jsx";
+import HowItWorks from "./pages/HowItWorks.jsx";
 
 const App = () => {
   return (
@@ -31,6 +33,8 @@ const App = () => {
         <Route path="/notifications" element={<Notification />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/howitwork" element={<HowItWorks />} />
       </Routes>
     </div>
   );
