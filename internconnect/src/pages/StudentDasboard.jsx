@@ -60,6 +60,7 @@ const StudentDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-800">
             Student Dashboard
           </h1>
+
           <p className="text-gray-600 mt-2">
             Welcome to InternConnect! Track your internship applications here.
           </p>
@@ -72,6 +73,7 @@ const StudentDashboard = () => {
               className={`bg-white p-6 rounded-xl shadow-sm border-l-4 ${stat.color}`}
             >
               <p className="text-gray-500 text-sm">{stat.title}</p>
+
               <h2 className={`text-3xl font-bold mt-3 ${stat.textColor}`}>
                 {stat.count}
               </h2>
@@ -98,6 +100,20 @@ const StudentDashboard = () => {
             >
               View My Applications
             </Link>
+
+            <Link
+              to="/editprofile"
+              className="bg-green-600 text-white text-center px-6 py-3 rounded-lg hover:bg-green-700"
+            >
+              Edit Profile
+            </Link>
+
+            <Link
+              to="/notifications"
+              className="bg-purple-600 text-white text-center px-6 py-3 rounded-lg hover:bg-purple-700"
+            >
+              🔔 Notifications
+            </Link>
           </div>
         </div>
 
@@ -111,6 +127,7 @@ const StudentDashboard = () => {
               <p className="text-gray-500">
                 You have not applied for any internships yet.
               </p>
+
               <Link
                 to="/internships"
                 className="inline-block mt-4 text-blue-600 font-semibold hover:underline"
@@ -132,21 +149,40 @@ const StudentDashboard = () => {
                       <h3 className="font-semibold text-gray-800">
                         {app.title || "Internship"}
                       </h3>
+
                       <p className="text-gray-500 text-sm mt-1">
                         {app.company || "Company not specified"}
                       </p>
+
                       <p className="text-gray-400 text-sm mt-1">
                         Applied on: {app.date || "Date not available"}
                       </p>
                     </div>
 
-                    <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm w-fit">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm w-fit ${
+                        app.status === "Accepted"
+                          ? "bg-green-100 text-green-700"
+                          : app.status === "Rejected"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
                       {app.status || "Pending"}
                     </span>
                   </div>
                 ))}
             </div>
           )}
+        </div>
+
+        <div className="mt-8 text-center">
+          <Link
+            to="/studentprofile"
+            className="text-blue-600 font-medium hover:underline"
+          >
+            View Student Profile →
+          </Link>
         </div>
       </div>
     </div>

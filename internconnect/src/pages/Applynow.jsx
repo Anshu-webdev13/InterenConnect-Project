@@ -1,30 +1,35 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 
 const Applynow = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const internship = location.state?.internship;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [college, setCollege] = useState("");
-  const [course, setCourse] = useState("");
-  const [coverMessage, setCoverMessage] = useState("");
+  const [coverLetter, setCoverLetter] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!internship) {
+      alert("Please select an internship first.");
+      navigate("/internships");
+      return;
+    }
+
     const newApplication = {
       id: Date.now(),
-      title: "Web Development Intern",
-      company: "Tech Solution",
+      title: internship.title,
+      company: internship.company,
       date: new Date().toLocaleDateString("en-IN"),
       name,
       email,
       phone,
-      college,
-      course,
-      coverMessage,
+      coverLetter,
       status: "Pending",
     };
 
@@ -36,129 +41,106 @@ const Applynow = () => {
 
     localStorage.setItem("applications", JSON.stringify(savedApplications));
 
-    navigate("/applicationsuccess");
+    navigate("/applicationsuccess", {
+      state: { internship },
+    });
   };
 
+  if (!internship) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-10 text-center">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Please select an internship first.
+        </h1>
+
+        <Link
+          to="/internships"
+          className="mt-5 inline-block rounded-lg bg-blue-600 px-6 py-3 text-white"
+        >
+          Browse Internships
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="bg-white p-8 rounded-lg shadow-md">
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="mx-auto max-w-3xl px-6">
+        <div className="rounded-xl bg-white p-8 shadow-md">
           <h1 className="text-3xl font-bold text-gray-800">
             Apply For Internship
           </h1>
 
-          <p className="text-gray-600 mt-2">
-            Web Development Intern at Tech Solution
+          <p className="mt-3 text-blue-600">
+            {internship.title} at {internship.company}
           </p>
 
-          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          <p className="mt-2 text-sm text-gray-600">
+            {internship.location} · {internship.duration} · {internship.salary}
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="mb-2 block font-medium text-gray-700">
                 Full Name
               </label>
-
               <input
                 type="text"
-                placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your full name"
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Email
+              <label className="mb-2 block font-medium text-gray-700">
+                Email Address
               </label>
-
               <input
                 type="email"
-                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="mb-2 block font-medium text-gray-700">
                 Phone Number
               </label>
-
               <input
                 type="tel"
-                placeholder="Enter your phone number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                placeholder="Enter your phone number"
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                College Name
+              <label className="mb-2 block font-medium text-gray-700">
+                Why are you suitable for this internship?
               </label>
-
-              <input
-                type="text"
-                placeholder="Enter your college name"
-                value={college}
-                onChange={(e) => setCollege(e.target.value)}
-                required
-                className="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Course / Branch
-              </label>
-
-              <input
-                type="text"
-                placeholder="e.g. B.Tech CSE"
-                value={course}
-                onChange={(e) => setCourse(e.target.value)}
-                required
-                className="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Resume
-              </label>
-
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                className="w-full border border-gray-300 rounded-md px-4 py-3"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Cover Message
-              </label>
-
               <textarea
-                rows="5"
-                placeholder="Why are you interested in this internship?"
-                value={coverMessage}
-                onChange={(e) => setCoverMessage(e.target.value)}
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+                placeholder="Write a short introduction about your skills..."
+                rows="4"
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition"
+              className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
             >
-              Apply Now
+              Submit Application
             </button>
           </form>
         </div>

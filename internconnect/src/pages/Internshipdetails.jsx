@@ -1,66 +1,117 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Internshipdetails = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Selected internship from Internship page
+  const internship = location.state?.internship;
+
+  // If no internship is selected
+  if (!internship) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-10 text-center">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Please select an internship first.
+        </h1>
+
+        <Link
+          to="/internships"
+          className="mt-5 inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+        >
+          Browse Internships
+        </Link>
+      </div>
+    );
+  }
+
+  const skills = internship.skills
+    ? internship.skills.split(",").map((skill) => skill.trim())
+    : [];
+
+  const handleApply = () => {
+    navigate("/applynow", {
+      state: { internship: internship },
+    });
+  };
+
   return (
-    <div className="bg-gray-50 py-12 min-h-screen">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Web Development Intern
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="mx-auto max-w-5xl px-6">
+        {/* Internship Header */}
+        <div className="rounded-xl bg-white p-8 shadow-md">
+          <span className="rounded-full bg-blue-100 px-4 py-2 text-sm text-blue-700">
+            {internship.category}
+          </span>
+
+          <h1 className="mt-4 text-3xl font-bold text-gray-800">
+            {internship.title}
           </h1>
-          <p className="text-blue-600 text-lg mt-2"> Tech Solution</p>
-          <div className="flex flex-wrap gap-6 mt-6 text-gray-600">
-            <p>📍 Remote</p>
-            <p>💼 Full Time</p>
-            <p>⏳ 2 Months</p>
-            <p>💰 ₹10,000 / Month</p>
+
+          <p className="mt-2 text-lg text-blue-600">{internship.company}</p>
+
+          <div className="mt-6 flex flex-wrap gap-6 text-gray-600">
+            <p>📍 {internship.location}</p>
+            <p>💼 Internship</p>
+            <p>⏳ {internship.duration}</p>
+            <p>💰 {internship.salary}</p>
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-lg shadow-md mt-6">
+        {/* About Internship */}
+        <div className="mt-6 rounded-xl bg-white p-8 shadow-md">
           <h2 className="text-2xl font-bold text-gray-800">
             About The Internship
           </h2>
-          <p className="text-gray-600 mt-4 leading-7">
-            We are looking for a motivated Web Development Intern who is the
-            interested in the building modern and responsive website. You will
-            get an opportunity to work on real-world projects and improve your
-            development skills.
+
+          <p className="mt-4 leading-7 text-gray-600">
+            {internship.description}
           </p>
         </div>
 
-        <div className="bg-white p-8 rounded-lg shadow-md mt-6">
+        {/* Required Skills */}
+        <div className="mt-6 rounded-xl bg-white p-8 shadow-md">
           <h2 className="text-2xl font-bold text-gray-800">Required Skills</h2>
-          <div className="flex flex-wrap gap-3 mt-4">
-            <span className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full">
-              HTML
-            </span>
-            <span className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full">
-              CSS
-            </span>
-            <span className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full">
-              Javascript
-            </span>
-            <span className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full">
-              React
-            </span>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            {skills.map((skill, index) => (
+              <span
+                key={index}
+                className="rounded-full bg-blue-100 px-4 py-2 text-blue-700"
+              >
+                {skill}
+              </span>
+            ))}
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-lg shadow-md mt-6">
+        {/* Responsibilities */}
+        <div className="mt-6 rounded-xl bg-white p-8 shadow-md">
           <h2 className="text-2xl font-bold text-gray-800">Responsibilities</h2>
-          <ul className="list-disc list-inside text-gray-600 mt-4 space-y-2">
-            <li>Build responsive web page</li>
-            <li>Write clean and reusable code</li>
-            <li>Work with the development team</li>
-            <li>Fix bugs and improve websites performance</li>
+
+          <ul className="mt-4 list-inside list-disc space-y-2 text-gray-600">
+            <li>Work on tasks related to {internship.category}.</li>
+            <li>Write clean and maintainable code.</li>
+            <li>Collaborate with the team and learn new skills.</li>
+            <li>Complete assigned tasks on time.</li>
           </ul>
         </div>
 
-        <div className="mt-8 text-center">
-          <Link to="/applynow" className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700">
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <button
+            onClick={handleApply}
+            className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
+          >
             Apply Now
+          </button>
+
+          <Link
+            to="/internships"
+            className="rounded-lg border border-blue-600 px-8 py-3 text-blue-600 hover:bg-blue-50"
+          >
+            Back to Internships
           </Link>
         </div>
       </div>

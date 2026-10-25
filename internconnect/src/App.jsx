@@ -9,6 +9,10 @@ import Applicationsuccess from "./pages/ApplicationSuccess.jsx";
 import MyApplications from "./pages/MyApplications.jsx";
 import StudentDashboard from "./pages/StudentDasboard.jsx";
 import StudentProfile from "./pages/StudentProfile";
+import EditProfile from "./pages/EditProfile.jsx";
+import Notification from "./pages/Notification.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import Register from "./pages/Register.jsx";
 
 const App = () => {
   return (
@@ -23,6 +27,10 @@ const App = () => {
         <Route path="/myapplications" element={<MyApplications />} />
         <Route path="/studentdashboard" element={<StudentDashboard />} />
         <Route path="/studentprofile" element={<StudentProfile />} />
+        <Route path="/editprofile" element={<EditProfile />} />
+        <Route path="/notifications" element={<Notification />} />
+        <Route path="/admindashboard" element={<AdminDashboard />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </div>
   );
