@@ -51,7 +51,7 @@ const Navbar = () => {
             Internships
           </Link>
 
-          <Link to="/how-it-works" className={linkStyle}>
+          <Link to="/howitworks" className={linkStyle}>
             How It Works
           </Link>
 

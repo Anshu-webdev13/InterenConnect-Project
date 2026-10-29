@@ -1,78 +1,90 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const HowItWorks = () => {
-  const steps = [
-    {
-      number: "01",
-      title: "Create Your Account",
-      description:
-        "Register on InternConnect and create your student account to get started.",
-    },
-    {
-      number: "02",
-      title: "Explore Internships",
-      description:
-        "Browse internship opportunities and find roles that match your skills and interests.",
-    },
-    {
-      number: "03",
-      title: "Apply for Internship",
-      description:
-        "Open internship details, complete the application form and submit your application.",
-    },
-    {
-      number: "04",
-      title: "Track Your Application",
-      description:
-        "Visit My Applications to check your application status and follow your progress.",
-    },
-  ];
+const steps = [
+  {
+    number: "01",
+    icon: "👤",
+    title: "Create Your Account",
+    description:
+      "Register on InternConnect and create your student account to get started.",
+  },
+  {
+    number: "02",
+    icon: "🔍",
+    title: "Explore Internships",
+    description:
+      "Browse internships by category, search for opportunities, and find the right role.",
+  },
+  {
+    number: "03",
+    icon: "📝",
+    title: "Apply for Internship",
+    description:
+      "Choose an internship, check its details, and submit your application.",
+  },
+  {
+    number: "04",
+    icon: "📊",
+    title: "Track Your Application",
+    description:
+      "Visit your dashboard and My Applications page to check your application status.",
+  },
+];
 
+const HowItWorks = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="bg-blue-600 px-6 py-16 text-center text-white">
-        <h1 className="text-4xl font-bold md:text-5xl">
+        <h1 className="text-3xl font-bold md:text-5xl">
           How InternConnect Works
         </h1>
 
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-blue-100">
-          Your journey to finding the right internship starts here. Follow these
-          simple steps to get started.
+        <p className="mx-auto mt-4 max-w-2xl text-base text-blue-100 md:text-lg">
+          Start your internship journey in four simple steps. Discover
+          opportunities and take the next step toward your career.
         </p>
 
         <Link
           to="/internships"
-          className="mt-8 inline-block rounded-lg bg-white px-7 py-3 font-semibold text-blue-600 transition hover:bg-blue-50"
+          className="mt-7 inline-block rounded-lg bg-white px-6 py-3
+          font-semibold text-blue-600 transition hover:bg-blue-50"
         >
           Explore Internships
         </Link>
       </section>
 
       {/* Steps Section */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-gray-800">
-            Four Simple Steps
+            Your Journey Starts Here
           </h2>
-
           <p className="mt-3 text-gray-600">
-            Start building your career with InternConnect.
+            Follow these simple steps to find your next opportunity.
           </p>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          className="grid grid-cols-1 gap-7 sm:grid-cols-2
+        lg:grid-cols-4"
+        >
           {steps.map((step) => (
             <div
               key={step.number}
-              className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+              className="rounded-xl border border-gray-100 bg-white
+              p-7 shadow-md transition duration-300 hover:-translate-y-2
+              hover:shadow-xl"
             >
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-600">
-                {step.number}
+              <div className="flex items-center justify-between">
+                <span className="text-4xl">{step.icon}</span>
+                <span className="text-2xl font-bold text-blue-200">
+                  {step.number}
+                </span>
               </div>
 
-              <h3 className="text-xl font-semibold text-gray-800">
+              <h3 className="mt-6 text-xl font-bold text-gray-800">
                 {step.title}
               </h3>
 
@@ -84,19 +96,23 @@ const HowItWorks = () => {
 
       {/* Call to Action */}
       <section className="px-6 pb-16">
-        <div className="mx-auto max-w-5xl rounded-2xl bg-white px-6 py-10 text-center shadow-sm">
-          <h2 className="text-3xl font-bold text-gray-800">
-            Ready to Start Your Journey?
+        <div
+          className="mx-auto max-w-5xl rounded-2xl bg-blue-50
+        px-6 py-12 text-center"
+        >
+          <h2 className="text-2xl font-bold text-gray-800 md:text-3xl">
+            Ready to Build Your Future?
           </h2>
 
           <p className="mt-4 text-gray-600">
-            Discover opportunities, gain experience and take the next step
-            toward your career goals.
+            Find opportunities that match your skills and career goals.
           </p>
 
           <Link
             to="/internships"
-            className="mt-6 inline-block rounded-lg bg-blue-600 px-7 py-3 font-semibold text-white transition hover:bg-blue-700"
+            className="mt-6 inline-block rounded-lg bg-blue-600
+            px-7 py-3 font-semibold text-white transition
+            hover:bg-blue-700"
           >
             Find Internships
           </Link>
