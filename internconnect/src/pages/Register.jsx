@@ -8,6 +8,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("student");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,10 +18,23 @@ const Register = () => {
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    let users = [];
+
+    try {
+      users = JSON.parse(localStorage.getItem("users") || "[]");
+
+      if (!Array.isArray(users)) {
+        users = [];
+      }
+    } catch (error) {
+      alert("Unable to read registered users. Please try again.");
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
 
     const existingUser = users.find(
-      (user) => user.email.toLowerCase() === email.trim().toLowerCase(),
+      (user) => user.email?.toLowerCase() === normalizedEmail,
     );
 
     if (existingUser) {
@@ -31,8 +45,9 @@ const Register = () => {
     const newUser = {
       id: Date.now(),
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
       password,
+      role,
     };
 
     users.push(newUser);
@@ -54,58 +69,91 @@ const Register = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          {/* Full Name */}
           <div>
             <label className="mb-2 block font-medium text-gray-700">
               Full Name
             </label>
+
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
+              autoComplete="name"
               required
               className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
             />
           </div>
 
+          {/* Email */}
           <div>
             <label className="mb-2 block font-medium text-gray-700">
               Email Address
             </label>
+
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
+              autoComplete="email"
               required
               className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
             />
           </div>
 
+          {/* Role Selection */}
+          <div>
+            <label className="mb-2 block font-medium text-gray-700">
+              Register As
+            </label>
+
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+              className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+            >
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+            </select>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Select the account type you want to create.
+            </p>
+          </div>
+
+          {/* Password */}
           <div>
             <label className="mb-2 block font-medium text-gray-700">
               Password
             </label>
+
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Create a password"
+              autoComplete="new-password"
               minLength={6}
               required
               className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
             />
           </div>
 
+          {/* Confirm Password */}
           <div>
             <label className="mb-2 block font-medium text-gray-700">
               Confirm Password
             </label>
+
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
+              autoComplete="new-password"
               minLength={6}
               required
               className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
@@ -114,7 +162,7 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
+            className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 transition"
           >
             Register
           </button>
