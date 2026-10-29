@@ -1,119 +1,185 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Internshipdetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Selected internship from Internship page
-  const internship = location.state?.internship;
+  // Internship listing se aayi hui details
+  let internship = location.state?.internship;
 
-  // If no internship is selected
+  // Agar page refresh ho jaye, to localStorage se details lene ki koshish
   if (!internship) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-10 text-center">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Please select an internship first.
-        </h1>
+    const params = new URLSearchParams(location.search);
+    const internshipId = params.get("id");
 
-        <Link
-          to="/internships"
-          className="mt-5 inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
-        >
-          Browse Internships
-        </Link>
-      </div>
-    );
+    if (internshipId) {
+      const savedInternships = JSON.parse(
+        localStorage.getItem("internships") || "[]",
+      );
+
+      internship = savedInternships.find(
+        (item) => String(item.id) === String(internshipId),
+      );
+    }
   }
 
-  const skills = internship.skills
-    ? internship.skills.split(",").map((skill) => skill.trim())
-    : [];
+  // List ko display karne ke liye format karna
+  const getList = (value) => {
+    if (!value) return [];
 
+    const items = Array.isArray(value) ? value : value.split(/\n|,/);
+
+    return items
+      .map((item) =>
+        String(item)
+          .replace(/^[\s•\-]+/, "")
+          .trim(),
+      )
+      .filter(Boolean);
+  };
+
+  // Internship ki details
+  const title = internship?.title || "Internship Details";
+  const company = internship?.company || "Company not specified";
+  const category = internship?.category || "General";
+  const locationName = internship?.location || "Not specified";
+  const duration = internship?.duration || "Not specified";
+  const type = internship?.type || "Not specified";
+
+  const stipend = internship?.stipend || internship?.salary || "Not specified";
+
+  const about =
+    internship?.about ||
+    internship?.description ||
+    "No description available for this internship.";
+
+  const responsibilities = getList(internship?.responsibilities);
+
+  const requiredSkills = getList(
+    internship?.requiredSkills || internship?.skills,
+  );
+
+  // Apply Now button ka action
   const handleApply = () => {
+    if (!internship) {
+      navigate("/internships");
+      return;
+    }
+
     navigate("/applynow", {
-      state: { internship: internship },
+      state: { internship },
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="mx-auto max-w-5xl px-6">
+    <div className="min-h-screen bg-gray-50 py-10">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         {/* Internship Header */}
-        <div className="rounded-xl bg-white p-8 shadow-md">
-          <span className="rounded-full bg-blue-100 px-4 py-2 text-sm text-blue-700">
-            {internship.category}
+        <div className="rounded-2xl bg-white p-6 shadow-md sm:p-8">
+          <span className="inline-block rounded-full bg-blue-100 px-4 py-1 text-sm font-medium text-blue-700">
+            {category}
           </span>
 
-          <h1 className="mt-4 text-3xl font-bold text-gray-800">
-            {internship.title}
+          <h1 className="mt-4 text-3xl font-bold text-gray-800 sm:text-4xl">
+            {title}
           </h1>
 
-          <p className="mt-2 text-lg text-blue-600">{internship.company}</p>
+          <p className="mt-2 text-lg font-medium text-gray-600">{company}</p>
 
-          <div className="mt-6 flex flex-wrap gap-6 text-gray-600">
-            <p>📍 {internship.location}</p>
-            <p>💼 Internship</p>
-            <p>⏳ {internship.duration}</p>
-            <p>💰 {internship.salary}</p>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Location</p>
+              <p className="mt-1 font-semibold text-gray-800">{locationName}</p>
+            </div>
+
+            <div className="rounded-lg bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Job Type</p>
+              <p className="mt-1 font-semibold text-gray-800">{type}</p>
+            </div>
+
+            <div className="rounded-lg bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Duration</p>
+              <p className="mt-1 font-semibold text-gray-800">{duration}</p>
+            </div>
+
+            <div className="rounded-lg bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Stipend</p>
+              <p className="mt-1 font-semibold text-gray-800">{stipend}</p>
+            </div>
           </div>
-        </div>
 
-        {/* About Internship */}
-        <div className="mt-6 rounded-xl bg-white p-8 shadow-md">
-          <h2 className="text-2xl font-bold text-gray-800">
-            About The Internship
-          </h2>
-
-          <p className="mt-4 leading-7 text-gray-600">
-            {internship.description}
-          </p>
-        </div>
-
-        {/* Required Skills */}
-        <div className="mt-6 rounded-xl bg-white p-8 shadow-md">
-          <h2 className="text-2xl font-bold text-gray-800">Required Skills</h2>
-
-          <div className="mt-4 flex flex-wrap gap-3">
-            {skills.map((skill, index) => (
-              <span
-                key={index}
-                className="rounded-full bg-blue-100 px-4 py-2 text-blue-700"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Responsibilities */}
-        <div className="mt-6 rounded-xl bg-white p-8 shadow-md">
-          <h2 className="text-2xl font-bold text-gray-800">Responsibilities</h2>
-
-          <ul className="mt-4 list-inside list-disc space-y-2 text-gray-600">
-            <li>Work on tasks related to {internship.category}.</li>
-            <li>Write clean and maintainable code.</li>
-            <li>Collaborate with the team and learn new skills.</li>
-            <li>Complete assigned tasks on time.</li>
-          </ul>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          {/* Only One Apply Button */}
           <button
+            type="button"
             onClick={handleApply}
-            className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
+            className="mt-6 w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
           >
             Apply Now
           </button>
-
-          <Link
-            to="/internships"
-            className="rounded-lg border border-blue-600 px-8 py-3 text-blue-600 hover:bg-blue-50"
-          >
-            Back to Internships
-          </Link>
         </div>
+
+        {/* About Internship */}
+        <section className="mt-6 rounded-2xl bg-white p-6 shadow-md sm:p-8">
+          <h2 className="text-2xl font-bold text-gray-800">About Internship</h2>
+
+          <p className="mt-4 leading-7 text-gray-600">{about}</p>
+        </section>
+
+        {/* Responsibilities */}
+        <section className="mt-6 rounded-2xl bg-white p-6 shadow-md sm:p-8">
+          <h2 className="text-2xl font-bold text-gray-800">Responsibilities</h2>
+
+          {responsibilities.length > 0 ? (
+            <ul className="mt-4 space-y-3">
+              {responsibilities.map((item, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 text-gray-600"
+                >
+                  <span className="mt-1 font-bold text-blue-600">✓</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-4 text-gray-500">
+              Responsibilities have not been added yet.
+            </p>
+          )}
+        </section>
+
+        {/* Required Skills */}
+        <section className="mt-6 rounded-2xl bg-white p-6 shadow-md sm:p-8">
+          <h2 className="text-2xl font-bold text-gray-800">Required Skills</h2>
+
+          {requiredSkills.length > 0 ? (
+            <ul className="mt-4 space-y-3">
+              {requiredSkills.map((skill, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 text-gray-600"
+                >
+                  <span className="mt-1 font-bold text-blue-600">✓</span>
+                  <span>{skill}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-4 text-gray-500">
+              Required skills have not been added yet.
+            </p>
+          )}
+        </section>
+
+        {/* Back Button */}
+        <button
+          type="button"
+          onClick={() => navigate("/internships")}
+          className="mt-6 rounded-lg border border-blue-600 px-6 py-3 font-semibold text-blue-600 transition hover:bg-blue-50"
+        >
+          Back to Internships
+        </button>
       </div>
     </div>
   );

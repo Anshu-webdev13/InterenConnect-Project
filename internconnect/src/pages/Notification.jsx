@@ -1,51 +1,91 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 
 const Notification = () => {
-  const applications = JSON.parse(localStorage.getItem("applications") || "[]");
+  const [applications, setApplications] = useState([]);
 
-  const notifications = applications.map((app) => ({
-    id: app.id,
-    title:
-      app.status === "Accepted"
-        ? "Application Accepted!"
-        : app.status === "Rejected"
-          ? "Application Rejected"
-          : "Application Submitted",
-    message:
-      app.status === "Accepted"
-        ? `Congratulations! Your application for ${app.title} at ${app.company} has been accepted.`
-        : app.status === "Rejected"
-          ? `Your application for ${app.title} at ${app.company} was rejected.`
-          : `Your application for ${app.title} at ${app.company} is currently pending.`,
-    status: app.status || "Pending",
-    date: app.date,
-  }));
+  // Load applications from localStorage
+  const loadApplications = useCallback(() => {
+    try {
+      const savedApplications = JSON.parse(
+        localStorage.getItem("applications") || "[]",
+      );
+
+      setApplications(
+        Array.isArray(savedApplications) ? savedApplications : [],
+      );
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+      setApplications([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadApplications();
+
+    // Update notifications when Admin changes application status
+    window.addEventListener("applicationsUpdated", loadApplications);
+
+    // Update when localStorage changes in another tab
+    window.addEventListener("storage", loadApplications);
+
+    return () => {
+      window.removeEventListener("applicationsUpdated", loadApplications);
+      window.removeEventListener("storage", loadApplications);
+    };
+  }, [loadApplications]);
+
+  const notifications = [...applications].reverse().map((app) => {
+    const status = app.status || "Pending";
+
+    return {
+      id: app.id,
+      title:
+        status === "Accepted"
+          ? "Application Accepted!"
+          : status === "Rejected"
+            ? "Application Rejected"
+            : "Application Submitted",
+      message:
+        status === "Accepted"
+          ? `Congratulations! Your application for ${app.title || "Internship"} at ${app.company || "the company"} has been accepted.`
+          : status === "Rejected"
+            ? `Your application for ${app.title || "Internship"} at ${app.company || "the company"} was rejected.`
+            : `Your application for ${app.title || "Internship"} at ${app.company || "the company"} is currently pending.`,
+      status,
+      date: app.date,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Page Heading */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Notifications</h1>
+
           <p className="text-gray-600 mt-2">
             Stay updated on your internship applications.
           </p>
         </div>
 
+        {/* Notifications List */}
         <div className="bg-white rounded-xl shadow-md p-6">
           {notifications.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-5xl mb-4">🔔</div>
+
               <h2 className="text-xl font-semibold text-gray-800">
                 No Notifications Yet
               </h2>
+
               <p className="text-gray-500 mt-2">
                 Apply for an internship to see updates here.
               </p>
 
               <Link
                 to="/internships"
-                className="inline-block mt-5 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                className="inline-block mt-5 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
               >
                 Explore Internships
               </Link>
@@ -94,6 +134,7 @@ const Notification = () => {
           )}
         </div>
 
+        {/* Back to Dashboard */}
         <div className="mt-6">
           <Link
             to="/studentdashboard"

@@ -1,16 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 
 const StudentDashboard = () => {
   const [applications, setApplications] = useState([]);
 
-  useEffect(() => {
-    const savedApplications = JSON.parse(
-      localStorage.getItem("applications") || "[]",
-    );
+  // Load applications from localStorage
+  const loadApplications = useCallback(() => {
+    try {
+      const savedApplications = JSON.parse(
+        localStorage.getItem("applications") || "[]",
+      );
 
-    setApplications(savedApplications);
+      setApplications(
+        Array.isArray(savedApplications) ? savedApplications : [],
+      );
+    } catch (error) {
+      console.error("Error loading applications:", error);
+      setApplications([]);
+    }
   }, []);
+
+  useEffect(() => {
+    // Load data when dashboard opens
+    loadApplications();
+
+    // Update when Admin changes application status
+    window.addEventListener("applicationsUpdated", loadApplications);
+
+    // Update when localStorage changes in another tab
+    window.addEventListener("storage", loadApplications);
+
+    return () => {
+      window.removeEventListener("applicationsUpdated", loadApplications);
+      window.removeEventListener("storage", loadApplications);
+    };
+  }, [loadApplications]);
 
   const totalApplications = applications.length;
 
@@ -53,6 +77,8 @@ const StudentDashboard = () => {
     },
   ];
 
+  const recentApplications = [...applications].reverse().slice(0, 3);
+
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-6xl mx-auto px-6">
@@ -66,6 +92,7 @@ const StudentDashboard = () => {
           </p>
         </div>
 
+        {/* Application Statistics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
             <div
@@ -81,46 +108,59 @@ const StudentDashboard = () => {
           ))}
         </div>
 
+        {/* Quick Actions */}
         <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
             Quick Actions
           </h2>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4">
             <Link
               to="/internships"
-              className="bg-blue-600 text-white text-center px-6 py-3 rounded-lg hover:bg-blue-700"
+              className="bg-blue-600 text-white text-center px-6 py-3 rounded-lg hover:bg-blue-700 transition"
             >
               Explore Internships
             </Link>
 
             <Link
               to="/myapplications"
-              className="bg-white text-blue-600 border border-blue-600 text-center px-6 py-3 rounded-lg hover:bg-blue-50"
+              className="bg-white text-blue-600 border border-blue-600 text-center px-6 py-3 rounded-lg hover:bg-blue-50 transition"
             >
               View My Applications
             </Link>
 
             <Link
               to="/editprofile"
-              className="bg-green-600 text-white text-center px-6 py-3 rounded-lg hover:bg-green-700"
+              className="bg-green-600 text-white text-center px-6 py-3 rounded-lg hover:bg-green-700 transition"
             >
               Edit Profile
             </Link>
 
             <Link
               to="/notifications"
-              className="bg-purple-600 text-white text-center px-6 py-3 rounded-lg hover:bg-purple-700"
+              className="bg-purple-600 text-white text-center px-6 py-3 rounded-lg hover:bg-purple-700 transition"
             >
               🔔 Notifications
             </Link>
           </div>
         </div>
 
+        {/* Recent Applications */}
         <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
-            Recent Applications
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-xl font-bold text-gray-800">
+              Recent Applications
+            </h2>
+
+            {applications.length > 3 && (
+              <Link
+                to="/myapplications"
+                className="text-blue-600 text-sm font-semibold hover:underline"
+              >
+                View All Applications →
+              </Link>
+            )}
+          </div>
 
           {applications.length === 0 ? (
             <div className="text-center py-8">
@@ -137,45 +177,43 @@ const StudentDashboard = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {applications
-                .slice(-3)
-                .reverse()
-                .map((app) => (
-                  <div
-                    key={app.id}
-                    className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-                  >
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
-                        {app.title || "Internship"}
-                      </h3>
+              {recentApplications.map((app) => (
+                <div
+                  key={app.id}
+                  className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                >
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {app.title || "Internship"}
+                    </h3>
 
-                      <p className="text-gray-500 text-sm mt-1">
-                        {app.company || "Company not specified"}
-                      </p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      {app.company || "Company not specified"}
+                    </p>
 
-                      <p className="text-gray-400 text-sm mt-1">
-                        Applied on: {app.date || "Date not available"}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm w-fit ${
-                        app.status === "Accepted"
-                          ? "bg-green-100 text-green-700"
-                          : app.status === "Rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {app.status || "Pending"}
-                    </span>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Applied on: {app.date || "Date not available"}
+                    </p>
                   </div>
-                ))}
+
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm w-fit ${
+                      app.status === "Accepted"
+                        ? "bg-green-100 text-green-700"
+                        : app.status === "Rejected"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {app.status || "Pending"}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </div>
 
+        {/* Student Profile Link */}
         <div className="mt-8 text-center">
           <Link
             to="/studentprofile"

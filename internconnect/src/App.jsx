@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
+import ManageInternships from "./pages/ManageInternships.jsx";
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/howitworks" element={<HowItWorks />} />
+        <Route path="/manage-internships" element={<ManageInternships />} />
       </Routes>
     </div>
   );

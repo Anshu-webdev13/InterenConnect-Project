@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const internshipsData = [
+const defaultInternships = [
   {
     id: 1,
     title: "Web Development Intern",
@@ -10,6 +11,8 @@ const internshipsData = [
     location: "Remote",
     duration: "2 Months",
     salary: "₹10,000/month",
+    stipend: "₹10,000",
+    type: "Full Time",
     skills: "HTML, CSS, JavaScript, React",
     description:
       "Work on websites and learn frontend development by building real projects.",
@@ -22,6 +25,8 @@ const internshipsData = [
     location: "Hybrid",
     duration: "3 Months",
     salary: "₹8,000/month",
+    stipend: "₹8,000",
+    type: "Full Time",
     skills: "Python, OOP, SQL",
     description:
       "Learn Python programming and develop applications with an experienced team.",
@@ -34,6 +39,8 @@ const internshipsData = [
     location: "On-site",
     duration: "3 Months",
     salary: "₹9,000/month",
+    stipend: "₹9,000",
+    type: "Full Time",
     skills: "Java, OOP, SQL",
     description:
       "Practice Java programming and help develop software applications.",
@@ -46,6 +53,8 @@ const internshipsData = [
     location: "Remote",
     duration: "2 Months",
     salary: "₹12,000/month",
+    stipend: "₹12,000",
+    type: "Full Time",
     skills: "Excel, SQL, Python",
     description:
       "Analyze datasets, prepare reports and learn data visualization.",
@@ -58,6 +67,8 @@ const internshipsData = [
     location: "Remote",
     duration: "3 Months",
     salary: "₹15,000/month",
+    stipend: "₹15,000",
+    type: "Full Time",
     skills: "Python, Machine Learning",
     description:
       "Explore machine learning concepts and build beginner-level AI projects.",
@@ -70,6 +81,8 @@ const internshipsData = [
     location: "Hybrid",
     duration: "2 Months",
     salary: "₹7,000/month",
+    stipend: "₹7,000",
+    type: "Full Time",
     skills: "Figma, UI Design, Wireframes",
     description:
       "Design user-friendly interfaces and create website and app prototypes.",
@@ -78,18 +91,59 @@ const internshipsData = [
 
 const Internship = () => {
   const navigate = useNavigate();
+
+  const [internships, setInternships] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
 
-  const filteredInternships = internshipsData.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.company.toLowerCase().includes(search.toLowerCase());
+  // Load default and admin-added internships
+  useEffect(() => {
+    const savedInternships = JSON.parse(
+      localStorage.getItem("internships") || "[]"
+    );
 
-    const matchesCategory = category === "All" || item.category === category;
+    
+    const internshipMap = new Map();
+
+    defaultInternships.forEach((item) => {
+      internshipMap.set(item.id, item);
+    });
+
+    savedInternships.forEach((item) => {
+      internshipMap.set(item.id, item);
+    });
+
+    setInternships(Array.from(internshipMap.values()));
+  }, []);
+
+  // Search and category filter
+  const filteredInternships = internships.filter((item) => {
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      (item.title || "").toLowerCase().includes(searchText) ||
+      (item.company || "").toLowerCase().includes(searchText) ||
+      (item.category || "").toLowerCase().includes(searchText);
+
+    const normalizedCategory = (item.category || "").toLowerCase();
+
+    const matchesCategory =
+      category === "All" ||
+      normalizedCategory === category.toLowerCase();
 
     return matchesSearch && matchesCategory;
   });
+
+  // Display stipend in both old and new formats
+  const getSalary = (item) => {
+    if (item.salary) return item.salary;
+    if (item.stipend) {
+      return item.stipend.toLowerCase().includes("month")
+        ? item.stipend
+        : `${item.stipend}/month`;
+    }
+    return "Not specified";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-12">
@@ -102,6 +156,7 @@ const Internship = () => {
           Explore internships and start building your career.
         </p>
 
+        {/* Search and category filter */}
         <div className="mx-auto mt-8 flex max-w-3xl flex-col gap-4 md:flex-row">
           <input
             type="text"
@@ -118,11 +173,23 @@ const Internship = () => {
           >
             <option value="All">All Categories</option>
             <option value="Web Development">Web Development</option>
+            <option value="Frontend Development">Frontend Development</option>
+            <option value="Backend Development">Backend Development</option>
+            <option value="Full Stack Development">Full Stack Development</option>
             <option value="Python">Python</option>
+            <option value="Python Development">Python Development</option>
             <option value="Java">Java</option>
+            <option value="Java Development">Java Development</option>
             <option value="Data Science">Data Science</option>
             <option value="AI/ML">AI/ML</option>
+            <option value="Artificial Intelligence">
+              Artificial Intelligence
+            </option>
+            <option value="Machine Learning">Machine Learning</option>
             <option value="Design">UI/UX Design</option>
+            <option value="UI/UX Design">UI/UX Design</option>
+            <option value="Digital Marketing">Digital Marketing</option>
+            <option value="Cybersecurity">Cybersecurity</option>
           </select>
         </div>
 
@@ -130,6 +197,7 @@ const Internship = () => {
           Showing {filteredInternships.length} internships
         </p>
 
+        {/* Internship cards */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredInternships.map((item) => (
             <div
@@ -137,7 +205,7 @@ const Internship = () => {
               className="rounded-xl bg-white p-6 shadow-md transition hover:-translate-y-1 hover:shadow-lg"
             >
               <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
-                {item.category}
+                {item.category || "General"}
               </span>
 
               <h2 className="mt-4 text-xl font-bold text-gray-800">
@@ -147,9 +215,10 @@ const Internship = () => {
               <p className="mt-2 text-gray-600">{item.company}</p>
 
               <div className="mt-4 space-y-2 text-sm text-gray-600">
-                <p>📍 {item.location}</p>
-                <p>🕒 {item.duration}</p>
-                <p>💰 {item.salary}</p>
+                <p>📍 {item.location || "Not specified"}</p>
+                <p>🕒 {item.duration || "Not specified"}</p>
+                <p>💰 {getSalary(item)}</p>
+                {item.type && <p>💼 {item.type}</p>}
               </div>
 
               <button

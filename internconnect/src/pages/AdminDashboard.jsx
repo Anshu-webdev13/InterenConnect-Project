@@ -7,7 +7,7 @@ const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Load applications from localStorage
+  // Applications load karna
   const loadApplications = useCallback(() => {
     try {
       const savedData = JSON.parse(
@@ -22,38 +22,66 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  // Load initially and listen for changes from other tabs
   useEffect(() => {
     loadApplications();
 
+    // Same tab mein application changes listen karna
+    const handleApplicationsUpdated = () => {
+      loadApplications();
+    };
+
+    // Dusre browser tab mein changes listen karna
     const handleStorageChange = (event) => {
       if (event.key === "applications" || event.key === null) {
         loadApplications();
       }
     };
 
+    window.addEventListener("applicationsUpdated", handleApplicationsUpdated);
     window.addEventListener("storage", handleStorageChange);
 
     return () => {
+      window.removeEventListener(
+        "applicationsUpdated",
+        handleApplicationsUpdated,
+      );
       window.removeEventListener("storage", handleStorageChange);
     };
   }, [loadApplications]);
 
-  // Update application status
+  // Application ka status update karna
   const updateStatus = (id, newStatus) => {
     try {
       const savedData = JSON.parse(
         localStorage.getItem("applications") || "[]",
       );
 
+      if (!Array.isArray(savedData)) {
+        alert("Application data is invalid.");
+        return;
+      }
+
+      const applicationExists = savedData.some(
+        (app) => String(app.id) === String(id),
+      );
+
+      if (!applicationExists) {
+        alert("Application not found. Please refresh the dashboard.");
+        loadApplications();
+        return;
+      }
+
       const updatedApplications = savedData.map((app) =>
-        app.id === id ? { ...app, status: newStatus } : app,
+        String(app.id) === String(id) ? { ...app, status: newStatus } : app,
       );
 
       localStorage.setItem("applications", JSON.stringify(updatedApplications));
 
       setApplications(updatedApplications);
       setLastUpdated(new Date());
+
+      // Isi tab ke doosre pages ko update hone ka signal
+      window.dispatchEvent(new Event("applicationsUpdated"));
     } catch (error) {
       console.error("Error updating application:", error);
       alert("Unable to update application status.");
@@ -90,7 +118,7 @@ const AdminDashboard = () => {
     },
   ];
 
-  // Search and status filter
+  // Search aur status filter
   const filteredApplications = applications.filter((app) => {
     const searchText = search.toLowerCase().trim();
 
@@ -113,10 +141,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div
-          className="mb-8 flex flex-col gap-4 sm:flex-row
-          sm:items-center sm:justify-between"
-        >
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">
               Admin Dashboard
@@ -134,26 +159,23 @@ const AdminDashboard = () => {
 
           <div className="flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={loadApplications}
-              className="rounded-lg border border-blue-600
-                px-4 py-3 font-medium text-blue-600
-                transition hover:bg-blue-50"
+              className="rounded-lg border border-blue-600 px-4 py-3 font-medium text-blue-600 transition hover:bg-blue-50"
             >
               ↻ Refresh Applications
             </button>
 
             <Link
               to="/manage-internships"
-              className="rounded-lg bg-green-600 px-5 py-3
-                text-center text-white hover:bg-green-700"
+              className="rounded-lg bg-green-600 px-5 py-3 text-center text-white hover:bg-green-700"
             >
               Manage Internships
             </Link>
 
             <Link
               to="/studentdashboard"
-              className="rounded-lg bg-blue-600 px-5 py-3
-                text-center text-white hover:bg-blue-700"
+              className="rounded-lg bg-blue-600 px-5 py-3 text-center text-white hover:bg-blue-700"
             >
               Student Dashboard
             </Link>
@@ -161,15 +183,11 @@ const AdminDashboard = () => {
         </div>
 
         {/* Statistics */}
-        <div
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2
-          lg:grid-cols-4"
-        >
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
               key={stat.title}
-              className={`rounded-xl border-l-4 bg-white
-                p-6 shadow-sm ${stat.color}`}
+              className={`rounded-xl border-l-4 bg-white p-6 shadow-sm ${stat.color}`}
             >
               <p className="text-gray-500">{stat.title}</p>
 
@@ -199,17 +217,13 @@ const AdminDashboard = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search student, email, internship..."
-              className="w-full rounded-lg border border-gray-300
-                px-4 py-3 outline-none focus:border-blue-500
-                focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full rounded-lg border border-gray-300
-                bg-white px-4 py-3 outline-none
-                focus:border-blue-500"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
             >
               <option value="All">All Applications</option>
               <option value="Pending">Pending</option>
@@ -233,8 +247,7 @@ const AdminDashboard = () => {
 
               <Link
                 to="/internships"
-                className="mt-4 inline-block text-blue-600
-                  hover:underline"
+                className="mt-4 inline-block text-blue-600 hover:underline"
               >
                 View Internships
               </Link>
@@ -260,8 +273,7 @@ const AdminDashboard = () => {
                     return (
                       <tr
                         key={app.id}
-                        className="border-b border-gray-100
-                          transition hover:bg-gray-50"
+                        className="border-b border-gray-100 transition hover:bg-gray-50"
                       >
                         <td className="p-4">
                           <p className="font-semibold text-gray-800">
@@ -285,14 +297,13 @@ const AdminDashboard = () => {
 
                         <td className="p-4">
                           <span
-                            className={`rounded-full px-3 py-1
-                              text-sm font-medium ${
-                                currentStatus === "Accepted"
-                                  ? "bg-green-100 text-green-700"
-                                  : currentStatus === "Rejected"
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-yellow-100 text-yellow-700"
-                              }`}
+                            className={`rounded-full px-3 py-1 text-sm font-medium ${
+                              currentStatus === "Accepted"
+                                ? "bg-green-100 text-green-700"
+                                : currentStatus === "Rejected"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                            }`}
                           >
                             {currentStatus}
                           </span>
@@ -301,25 +312,19 @@ const AdminDashboard = () => {
                         <td className="p-4">
                           <div className="flex flex-col gap-2">
                             <button
+                              type="button"
                               onClick={() => updateStatus(app.id, "Accepted")}
                               disabled={currentStatus === "Accepted"}
-                              className="rounded-lg bg-green-600
-                                px-3 py-2 text-white
-                                hover:bg-green-700
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50"
+                              className="rounded-lg bg-green-600 px-3 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               Accept
                             </button>
 
                             <button
+                              type="button"
                               onClick={() => updateStatus(app.id, "Rejected")}
                               disabled={currentStatus === "Rejected"}
-                              className="rounded-lg bg-red-600
-                                px-3 py-2 text-white
-                                hover:bg-red-700
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50"
+                              className="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               Reject
                             </button>
