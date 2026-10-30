@@ -40,7 +40,7 @@ const Login = () => {
 
     const userRole = loggedInUser.role || "student";
 
-    if (userRole !== "student" && userRole !== "admin") {
+    if (!["student", "company", "admin"].includes(userRole)) {
       alert("Invalid user role. Please contact the administrator.");
       return;
     }
@@ -48,6 +48,7 @@ const Login = () => {
     const currentUser = {
       id: loggedInUser.id,
       name: loggedInUser.name,
+      companyName: loggedInUser.companyName || "",
       email: loggedInUser.email,
       role: userRole,
     };
@@ -60,6 +61,8 @@ const Login = () => {
 
     if (userRole === "admin") {
       navigate("/admindashboard");
+    } else if (userRole === "company") {
+      navigate("/companydashboard");
     } else {
       navigate("/studentdashboard");
     }
@@ -67,7 +70,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-4 py-12 flex items-center justify-center">
-
       <div className="w-full max-w-md">
 
         {/* Logo and Branding */}

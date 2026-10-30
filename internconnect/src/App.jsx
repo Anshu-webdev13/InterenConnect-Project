@@ -12,14 +12,18 @@ import StudentDashboard from "./pages/StudentDasboard.jsx";
 import StudentProfile from "./pages/StudentProfile";
 import EditProfile from "./pages/EditProfile.jsx";
 import Notification from "./pages/Notification.jsx";
+
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import ManageStudents from "./pages/ManageStudents.jsx";
+
+import CompanyDashboard from "./pages/CompanyDashboard.jsx";
+import ManageInternships from "./pages/ManageInternships.jsx";
+
 import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
-import ManageInternships from "./pages/ManageInternships.jsx";
-import ManageStudents from "./pages/ManageStudents.jsx";
 
-// Protected Route Component
+// Protected Route
 const ProtectedRoute = ({ allowedRole, children }) => {
   const location = useLocation();
 
@@ -31,18 +35,19 @@ const ProtectedRoute = ({ allowedRole, children }) => {
     currentUser = null;
   }
 
-  // If user is not logged in
   if (!currentUser) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Check user role
   const userRole = currentUser.role || "student";
 
-  // If user tries to access another role's page
   if (userRole !== allowedRole) {
     if (userRole === "admin") {
       return <Navigate to="/admindashboard" replace />;
+    }
+
+    if (userRole === "company") {
+      return <Navigate to="/companydashboard" replace />;
     }
 
     if (userRole === "student") {
@@ -69,7 +74,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/howitworks" element={<HowItWorks />} />
 
-        {/* Student Protected Routes */}
+        {/* Student Routes */}
         <Route
           path="/studentdashboard"
           element={
@@ -133,12 +138,12 @@ const App = () => {
           }
         />
 
-        {/* Admin Protected Routes */}
+        {/* Company Routes */}
         <Route
-          path="/admindashboard"
+          path="/companydashboard"
           element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminDashboard />
+            <ProtectedRoute allowedRole="company">
+              <CompanyDashboard />
             </ProtectedRoute>
           }
         />
@@ -146,8 +151,18 @@ const App = () => {
         <Route
           path="/manage-internships"
           element={
-            <ProtectedRoute allowedRole="admin">
+            <ProtectedRoute allowedRole="company">
               <ManageInternships />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admindashboard"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

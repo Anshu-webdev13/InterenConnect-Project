@@ -6,6 +6,7 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,6 +20,16 @@ const Register = () => {
 
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
+    if (role === "company" && !companyName.trim()) {
+      alert("Please enter your company name.");
       return;
     }
 
@@ -49,6 +60,7 @@ const Register = () => {
     const newUser = {
       id: Date.now(),
       name: name.trim(),
+      companyName: role === "company" ? companyName.trim() : "",
       email: normalizedEmail,
       password,
       role,
@@ -56,21 +68,25 @@ const Register = () => {
 
     users.push(newUser);
 
-    localStorage.setItem("users", JSON.stringify(users));
+    try {
+      localStorage.setItem("users", JSON.stringify(users));
 
-    alert("Registration successful! Please login.");
-    navigate("/login");
+      window.dispatchEvent(new Event("userRegistered"));
+
+      alert("Registration successful! Please login.");
+      navigate("/login");
+    } catch (error) {
+      alert("Unable to save your account. Please try again.");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-4 py-12 flex items-center justify-center">
-
       <div className="w-full max-w-lg">
 
-        {/* Logo and Branding */}
+        {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-
             <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center text-2xl font-bold shadow-md">
               I
             </div>
@@ -78,7 +94,6 @@ const Register = () => {
             <span className="text-2xl font-bold text-gray-800">
               Intern<span className="text-blue-600">Connect</span>
             </span>
-
           </Link>
 
           <p className="text-gray-500 mt-3">
@@ -101,17 +116,60 @@ const Register = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
 
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Register As
+              </label>
+
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 outline-none transition focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="student">Student</option>
+                <option value="company">Company / Recruiter</option>
+              </select>
+
+              <p className="text-xs text-gray-500 mt-2">
+                Choose whether you want to join as a student or a company.
+              </p>
+            </div>
+
+            {/* Company Name */}
+            {role === "company" && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Company Name
+                </label>
+
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Enter your company name"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 outline-none transition focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            )}
+
             {/* Full Name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Name
+                {role === "company" ? "Contact Person Name" : "Full Name"}
               </label>
 
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
+                placeholder={
+                  role === "company"
+                    ? "Enter contact person's name"
+                    : "Enter your full name"
+                }
                 autoComplete="name"
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 outline-none transition focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -133,27 +191,6 @@ const Register = () => {
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 outline-none transition focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
-            </div>
-
-            {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Register As
-              </label>
-
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 outline-none transition focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="student">Student</option>
-                <option value="admin">Admin</option>
-              </select>
-
-              <p className="text-xs text-gray-500 mt-2">
-                Select the account type you want to create.
-              </p>
             </div>
 
             {/* Password */}
@@ -236,7 +273,6 @@ const Register = () => {
               </Link>
             </p>
           </div>
-
         </div>
 
         {/* Back to Home */}
@@ -255,3 +291,4 @@ const Register = () => {
 };
 
 export default Register;
+

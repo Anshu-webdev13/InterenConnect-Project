@@ -1,79 +1,94 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 
 const MyApplications = () => {
   const [applications, setApplications] = useState([]);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Load applications
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+
+  // Load only logged-in student's applications
   const loadApplications = useCallback(() => {
     try {
       const savedApplications = JSON.parse(
-        localStorage.getItem("applications") || "[]"
+        localStorage.getItem("applications") || "[]",
       );
 
-      setApplications(
-        Array.isArray(savedApplications) ? savedApplications : []
-      );
+      const userEmail = (
+        JSON.parse(localStorage.getItem("currentUser") || "null")?.email || ""
+      )
+        .toLowerCase()
+        .trim();
+
+      const studentApplications = Array.isArray(savedApplications)
+        ? savedApplications.filter(
+            (app) => (app.email || "").toLowerCase().trim() === userEmail,
+          )
+        : [];
+
+      setApplications(studentApplications);
     } catch (error) {
       console.error("Error loading applications:", error);
       setApplications([]);
     }
   }, []);
 
-  // Listen for application updates
   useEffect(() => {
     loadApplications();
 
-    const handleApplicationsUpdated = () => {
-      loadApplications();
-    };
+    const handleApplicationsUpdated = () => loadApplications();
 
     const handleStorageChange = (event) => {
-      if (event.key === "applications" || event.key === null) {
+      if (
+        event.key === "applications" ||
+        event.key === "currentUser" ||
+        event.key === null
+      ) {
         loadApplications();
       }
     };
 
-    window.addEventListener(
-      "applicationsUpdated",
-      handleApplicationsUpdated
-    );
-
+    window.addEventListener("applicationsUpdated", handleApplicationsUpdated);
     window.addEventListener("storage", handleStorageChange);
 
     return () => {
       window.removeEventListener(
         "applicationsUpdated",
-        handleApplicationsUpdated
+        handleApplicationsUpdated,
       );
-
       window.removeEventListener("storage", handleStorageChange);
     };
   }, [loadApplications]);
 
   // Statistics
   const pendingCount = applications.filter(
-    (app) => (app.status || "Pending") === "Pending"
+    (app) => (app.status || "Pending") === "Pending",
   ).length;
 
   const acceptedCount = applications.filter(
-    (app) => app.status === "Accepted"
+    (app) => app.status === "Accepted",
   ).length;
 
   const rejectedCount = applications.filter(
-    (app) => app.status === "Rejected"
+    (app) => app.status === "Rejected",
   ).length;
 
-  // Filter applications
+  // Search and status filter
   const filteredApplications = applications.filter((app) => {
     const status = app.status || "Pending";
 
-    return statusFilter === "All" || status === statusFilter;
+    const matchesStatus = statusFilter === "All" || status === statusFilter;
+
+    const searchText = searchTerm.toLowerCase();
+
+    const matchesSearch =
+      (app.title || "").toLowerCase().includes(searchText) ||
+      (app.company || "").toLowerCase().includes(searchText);
+
+    return matchesStatus && matchesSearch;
   });
 
-  // Status styles
   const statusStyle = {
     Pending: "bg-amber-50 text-amber-700 border-amber-200",
     Accepted: "bg-green-50 text-green-700 border-green-200",
@@ -119,12 +134,9 @@ const MyApplications = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 px-3 py-8 sm:px-6 sm:py-10">
-
       <div className="mx-auto max-w-7xl">
-
-        {/* Page Header */}
+        {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
               Student Dashboard
@@ -135,7 +147,8 @@ const MyApplications = () => {
             </h1>
 
             <p className="mt-2 text-sm text-gray-500 sm:text-base">
-              Manage and track all your internship applications in one place.
+              Hello {currentUser?.name || "Student"}, track your internship
+              applications here.
             </p>
           </div>
 
@@ -145,27 +158,27 @@ const MyApplications = () => {
           >
             + Explore Internships
           </Link>
-
         </div>
 
-        {/* Statistics Cards */}
-        <div className="mb-9 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-
+        {/* Statistics */}
+        <div className="mb-9 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {statistics.map((item) => (
             <div
               key={item.title}
               className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:p-6"
             >
               <div className="flex items-center justify-between gap-2">
-
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl sm:h-12 sm:w-12 ${item.bg}`}>
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl sm:h-12 sm:w-12 ${item.bg}`}
+                >
                   {item.icon}
                 </div>
 
-                <span className={`text-2xl font-bold sm:text-3xl ${item.color}`}>
+                <span
+                  className={`text-2xl font-bold sm:text-3xl ${item.color}`}
+                >
                   {item.count}
                 </span>
-
               </div>
 
               <p className="mt-4 text-xs font-medium text-gray-500 sm:text-sm">
@@ -173,12 +186,10 @@ const MyApplications = () => {
               </p>
             </div>
           ))}
-
         </div>
 
-        {/* Applications Section */}
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
+        {/* Applications heading and filters */}
+        <div className="mb-5 flex flex-col gap-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
               Your Applications
@@ -189,8 +200,15 @@ const MyApplications = () => {
             </p>
           </div>
 
-          {/* Status Filter */}
-          <div className="w-full sm:w-56">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by internship or company..."
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -202,14 +220,11 @@ const MyApplications = () => {
               <option value="Rejected">Rejected</option>
             </select>
           </div>
-
         </div>
 
-        {/* Empty State */}
+        {/* Empty state */}
         {filteredApplications.length === 0 ? (
-
           <div className="rounded-2xl border border-gray-100 bg-white px-5 py-12 text-center shadow-sm sm:py-16">
-
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl">
               📄
             </div>
@@ -223,7 +238,7 @@ const MyApplications = () => {
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
               {applications.length === 0
                 ? "You haven't applied for any internships yet. Explore available opportunities and take the first step towards your career."
-                : "There are no applications available with the selected status."}
+                : "Try changing your search or status filter."}
             </p>
 
             {applications.length === 0 && (
@@ -234,14 +249,10 @@ const MyApplications = () => {
                 Explore Internships
               </Link>
             )}
-
           </div>
-
         ) : (
-
-          /* Application Cards */
+          /* Application cards */
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
             {filteredApplications.map((app) => {
               const currentStatus = app.status || "Pending";
 
@@ -250,10 +261,7 @@ const MyApplications = () => {
                   key={app.id}
                   className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
                 >
-
-                  {/* Card Header */}
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-
                     <div className="min-w-0">
                       <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-600">
                         Internship Application
@@ -268,7 +276,6 @@ const MyApplications = () => {
                       </p>
                     </div>
 
-                    {/* Status Badge */}
                     <span
                       className={`inline-flex w-fit shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
                         statusStyle[currentStatus] ||
@@ -279,21 +286,16 @@ const MyApplications = () => {
                         className={`h-2 w-2 rounded-full ${
                           statusDot[currentStatus] || "bg-gray-500"
                         }`}
-                      ></span>
-
+                      />
                       {currentStatus}
                     </span>
-
                   </div>
 
-                  {/* Application Details */}
                   <div className="mt-5 space-y-3 border-t border-gray-100 pt-5">
-
                     <div className="flex flex-col gap-1 text-sm sm:flex-row sm:justify-between">
                       <span className="font-medium text-gray-500">
                         Application Date
                       </span>
-
                       <span className="text-gray-800">
                         {app.date || "Not available"}
                       </span>
@@ -304,10 +306,7 @@ const MyApplications = () => {
                         <span className="font-medium text-gray-500">
                           Applicant
                         </span>
-
-                        <span className="text-gray-800">
-                          {app.name}
-                        </span>
+                        <span className="text-gray-800">{app.name}</span>
                       </div>
                     )}
 
@@ -316,18 +315,15 @@ const MyApplications = () => {
                         <span className="font-medium text-gray-500">
                           Email Address
                         </span>
-
                         <span className="break-all text-gray-800 sm:text-right">
                           {app.email}
                         </span>
                       </div>
                     )}
-
                   </div>
 
-                  {/* Status Message */}
+                  {/* Status message */}
                   <div className="mt-5">
-
                     {currentStatus === "Accepted" && (
                       <div className="rounded-lg border border-green-100 bg-green-50 p-3 text-sm leading-6 text-green-700">
                         Congratulations! Your application has been accepted.
@@ -336,37 +332,34 @@ const MyApplications = () => {
 
                     {currentStatus === "Rejected" && (
                       <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm leading-6 text-red-700">
-                        Your application was not selected this time. Keep exploring new opportunities.
+                        Your application was not selected this time. Keep
+                        exploring new opportunities.
                       </div>
                     )}
 
                     {currentStatus === "Pending" && (
                       <div className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm leading-6 text-amber-700">
-                        Your application is awaiting review. Please check back for updates.
+                        Your application is awaiting review. Please check back
+                        for updates.
                       </div>
                     )}
-
                   </div>
 
-                  {/* Card Footer */}
                   <div className="mt-5 border-t border-gray-100 pt-4">
                     <Link
                       to="/internships"
                       className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-800"
                     >
-                      Explore More Internships
-                      <span>→</span>
+                      Explore More Internships <span>→</span>
                     </Link>
                   </div>
-
                 </div>
               );
             })}
-
           </div>
         )}
 
-        {/* Footer */}
+        {/* Back to dashboard */}
         <div className="mt-9 border-t border-gray-200 pt-6">
           <Link
             to="/studentdashboard"
@@ -375,7 +368,6 @@ const MyApplications = () => {
             ← Back to Dashboard
           </Link>
         </div>
-
       </div>
     </div>
   );

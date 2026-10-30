@@ -6,7 +6,6 @@ const STORAGE_KEY = "internships";
 
 const initialForm = {
   title: "",
-  company: "",
   category: "Cybersecurity",
   location: "Remote",
   type: "Full Time",
@@ -23,8 +22,19 @@ const ManageInternships = () => {
   const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState("");
 
-  // Load saved internships
-  useEffect(() => {
+  // Logged-in company
+  let currentUser = null;
+
+  try {
+    currentUser = JSON.parse(
+      localStorage.getItem("currentUser") || "null"
+    );
+  } catch (error) {
+    currentUser = null;
+  }
+
+  // Load internships
+  const loadInternships = () => {
     try {
       const saved = JSON.parse(
         localStorage.getItem(STORAGE_KEY) || "[]"
@@ -35,12 +45,43 @@ const ManageInternships = () => {
       console.error("Error loading internships:", error);
       setInternships([]);
     }
+  };
+
+  useEffect(() => {
+    loadInternships();
+
+    window.addEventListener("storage", loadInternships);
+    window.addEventListener("internshipsUpdated", loadInternships);
+
+    return () => {
+      window.removeEventListener("storage", loadInternships);
+      window.removeEventListener("internshipsUpdated", loadInternships);
+    };
   }, []);
 
-  // Save internships
+  // Check internship ownership
+  const isMyInternship = (item) => {
+    if (!currentUser) return false;
+
+    return (
+      (item.companyId != null &&
+        String(item.companyId) === String(currentUser.id)) ||
+      (item.companyEmail &&
+        item.companyEmail.toLowerCase() ===
+          currentUser.email?.toLowerCase())
+    );
+  };
+
+  // Only show logged-in company's internships
+  const myInternships = internships.filter(isMyInternship);
+
+  // Save internships without affecting other companies' data
   const saveInternships = (updated) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
     setInternships(updated);
+
+    window.dispatchEvent(new Event("internshipsUpdated"));
   };
 
   // Handle input changes
@@ -53,27 +94,60 @@ const ManageInternships = () => {
     }));
   };
 
-  // Add or Update Internship
+  // Add or update internship
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!currentUser || currentUser.role !== "company") {
+      alert("Only company accounts can manage internships.");
+      return;
+    }
+
+    const companyName =
+      currentUser.companyName?.trim() || currentUser.name?.trim();
+
+    if (!companyName) {
+      alert("Company name is missing. Please update your account.");
+      return;
+    }
 
     const internshipData = {
       ...form,
       id: editingId !== null ? editingId : Date.now(),
+
+      // Company ownership
+      company: companyName,
+      companyId: currentUser.id,
+      companyEmail: currentUser.email,
+
       description: form.about,
+
       salary: form.stipend
         ? form.stipend.toLowerCase().includes("month")
           ? form.stipend
           : `${form.stipend}/month`
         : "Not specified",
+
       skills: form.requiredSkills,
     };
 
     let updated;
 
     if (editingId !== null) {
+      const existingInternship = internships.find(
+        (item) => String(item.id) === String(editingId)
+      );
+
+      // Prevent editing another company's internship
+      if (!existingInternship || !isMyInternship(existingInternship)) {
+        alert("You cannot edit another company's internship.");
+        return;
+      }
+
       updated = internships.map((item) =>
-        item.id === editingId ? internshipData : item
+        String(item.id) === String(editingId)
+          ? internshipData
+          : item
       );
     } else {
       updated = [...internships, internshipData];
@@ -91,20 +165,26 @@ const ManageInternships = () => {
     );
   };
 
-  // Edit Internship
+  // Edit internship
   const handleEdit = (item) => {
+    if (!isMyInternship(item)) {
+      alert("You cannot edit this internship.");
+      return;
+    }
+
     setForm({
       title: item.title || "",
-      company: item.company || "",
       category: item.category || "Cybersecurity",
       location: item.location || "Remote",
       type: item.type || "Full Time",
       duration: item.duration || "",
       stipend: item.stipend || item.salary || "",
       about: item.about || item.description || "",
+
       responsibilities: Array.isArray(item.responsibilities)
         ? item.responsibilities.join("\n")
         : item.responsibilities || "",
+
       requiredSkills: Array.isArray(item.requiredSkills)
         ? item.requiredSkills.join("\n")
         : item.requiredSkills || item.skills || "",
@@ -112,35 +192,49 @@ const ManageInternships = () => {
 
     setEditingId(item.id);
 
-    window.scrollTo({
-      top: 0,
+    document.getElementById("internship-form")?.scrollIntoView({
       behavior: "smooth",
+      block: "start",
     });
   };
 
-  // Delete Internship
+  // Delete internship
   const handleDelete = (id) => {
+    const item = internships.find(
+      (internship) => String(internship.id) === String(id)
+    );
+
+    if (!item || !isMyInternship(item)) {
+      alert("You cannot delete another company's internship.");
+      return;
+    }
+
     if (!window.confirm("Do you want to delete this internship?")) {
       return;
     }
 
-    const updated = internships.filter((item) => item.id !== id);
+    const updated = internships.filter(
+      (internship) => String(internship.id) !== String(id)
+    );
+
     saveInternships(updated);
 
-    if (editingId === id) {
+    if (String(editingId) === String(id)) {
       setEditingId(null);
       setForm(initialForm);
     }
+
+    alert("Internship deleted successfully!");
   };
 
-  // Cancel Editing
+  // Cancel editing
   const handleCancel = () => {
     setEditingId(null);
     setForm(initialForm);
   };
 
-  // Search Internships
-  const filteredInternships = internships.filter((item) => {
+  // Search only company's internships
+  const filteredInternships = myInternships.filter((item) => {
     const query = search.toLowerCase().trim();
 
     return (
@@ -157,12 +251,10 @@ const ManageInternships = () => {
 
         {/* Header */}
         <div className="mb-8 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white shadow-md md:p-8">
-
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-
             <div>
               <p className="mb-2 text-sm font-semibold text-blue-100">
-                INTERNCONNECT ADMIN PANEL
+                INTERNCONNECT COMPANY PANEL
               </p>
 
               <h1 className="text-3xl font-bold md:text-4xl">
@@ -170,31 +262,33 @@ const ManageInternships = () => {
               </h1>
 
               <p className="mt-3 text-sm text-blue-100 md:text-base">
-                Create, update and manage internship opportunities.
+                Create, update and manage your internship opportunities.
+              </p>
+
+              <p className="mt-2 text-sm font-semibold">
+                Company: {currentUser?.companyName || currentUser?.name}
               </p>
             </div>
 
             <Link
-              to="/admindashboard"
+              to="/companydashboard"
               className="rounded-lg bg-white px-5 py-3 text-center font-semibold text-blue-700 transition hover:bg-blue-50"
             >
               ← Back to Dashboard
             </Link>
-
           </div>
         </div>
 
         {/* Statistics */}
         <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-
           <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
             <div>
               <p className="text-sm font-medium text-gray-500">
-                Total Internships
+                My Internships
               </p>
 
               <h2 className="mt-2 text-3xl font-bold text-blue-600">
-                {internships.length}
+                {myInternships.length}
               </h2>
             </div>
 
@@ -218,7 +312,6 @@ const ManageInternships = () => {
               🔍
             </div>
           </div>
-
         </div>
 
         {/* Add / Edit Form */}
@@ -226,7 +319,6 @@ const ManageInternships = () => {
           className="mb-10 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-8"
           id="internship-form"
         >
-
           <div className="mb-7 border-b border-gray-100 pb-5">
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-blue-50 p-3 text-2xl">
@@ -241,14 +333,13 @@ const ManageInternships = () => {
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  Fill in the details of the internship opportunity.
+                  Fill in the details of your internship opportunity.
                 </p>
               </div>
             </div>
           </div>
 
           <form onSubmit={handleSubmit}>
-
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
               {/* Internship Title */}
@@ -267,19 +358,18 @@ const ManageInternships = () => {
                 />
               </div>
 
-              {/* Company */}
+              {/* Company Name */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Company Name *
+                  Company Name
                 </label>
 
                 <input
-                  name="company"
-                  value={form.company}
-                  onChange={handleChange}
-                  placeholder="Enter company name"
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  value={
+                    currentUser?.companyName || currentUser?.name || ""
+                  }
+                  readOnly
+                  className="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-600 outline-none"
                 />
               </div>
 
@@ -437,12 +527,10 @@ const ManageInternships = () => {
                   Enter each required skill on a new line.
                 </p>
               </div>
-
             </div>
 
-            {/* Form Buttons */}
+            {/* Buttons */}
             <div className="mt-7 flex flex-col gap-3 border-t border-gray-100 pt-6 sm:flex-row">
-
               <button
                 type="submit"
                 className="rounded-lg bg-blue-600 px-7 py-3 font-semibold text-white transition hover:bg-blue-700"
@@ -461,37 +549,32 @@ const ManageInternships = () => {
                   Cancel Editing
                 </button>
               )}
-
             </div>
           </form>
         </div>
 
-        {/* All Internships */}
+        {/* Company's Internships */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-8">
-
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
             <div>
               <h2 className="text-xl font-bold text-gray-800 md:text-2xl">
-                All Internships
+                My Internships
               </h2>
 
               <p className="mt-1 text-sm text-gray-500">
-                Manage your available internship opportunities.
+                Manage your posted internship opportunities.
               </p>
             </div>
 
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="🔍 Search internships..."
+              placeholder="Search internships..."
               className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 sm:max-w-sm"
             />
-
           </div>
 
           {filteredInternships.length === 0 ? (
-
             <div className="py-12 text-center">
               <div className="mb-4 text-5xl">💼</div>
 
@@ -500,22 +583,17 @@ const ManageInternships = () => {
               </h3>
 
               <p className="mt-2 text-sm text-gray-500">
-                Add a new internship or try another search.
+                Add your first internship using the form above.
               </p>
             </div>
-
           ) : (
-
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
               {filteredInternships.map((item) => (
                 <div
                   key={item.id}
                   className="flex flex-col rounded-xl border border-gray-200 p-5 transition hover:border-blue-200 hover:shadow-md"
                 >
-
                   <div className="flex flex-wrap items-center justify-between gap-2">
-
                     <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                       {item.category}
                     </span>
@@ -523,7 +601,6 @@ const ManageInternships = () => {
                     <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
                       {item.type}
                     </span>
-
                   </div>
 
                   <h3 className="mt-4 text-xl font-bold text-gray-800">
@@ -535,7 +612,6 @@ const ManageInternships = () => {
                   </p>
 
                   <div className="mt-5 grid grid-cols-1 gap-3 text-sm text-gray-600 sm:grid-cols-2">
-
                     <p>
                       <strong>📍 Location:</strong> {item.location}
                     </p>
@@ -548,11 +624,9 @@ const ManageInternships = () => {
                       <strong>💰 Stipend:</strong>{" "}
                       {item.stipend || item.salary || "Not specified"}
                     </p>
-
                   </div>
 
                   <div className="mt-5 space-y-3 border-t border-gray-100 pt-4">
-
                     <div>
                       <p className="text-sm font-semibold text-gray-700">
                         About Internship
@@ -570,7 +644,7 @@ const ManageInternships = () => {
 
                       <p className="mt-1 whitespace-pre-line text-sm text-gray-500">
                         {Array.isArray(item.responsibilities)
-                          ? item.responsibilities.join(", ")
+                          ? item.responsibilities.join("\n")
                           : item.responsibilities || "Not added"}
                       </p>
                     </div>
@@ -582,16 +656,13 @@ const ManageInternships = () => {
 
                       <p className="mt-1 whitespace-pre-line text-sm text-gray-500">
                         {Array.isArray(item.requiredSkills)
-                          ? item.requiredSkills.join(", ")
+                          ? item.requiredSkills.join("\n")
                           : item.requiredSkills || item.skills || "Not added"}
                       </p>
                     </div>
-
                   </div>
 
-                  {/* Actions */}
                   <div className="mt-auto flex gap-3 border-t border-gray-100 pt-5">
-
                     <button
                       type="button"
                       onClick={() => handleEdit(item)}
@@ -607,21 +678,16 @@ const ManageInternships = () => {
                     >
                       🗑 Delete
                     </button>
-
                   </div>
-
                 </div>
               ))}
-
             </div>
-
           )}
-
         </div>
-
       </div>
     </div>
   );
 };
 
 export default ManageInternships;
+
