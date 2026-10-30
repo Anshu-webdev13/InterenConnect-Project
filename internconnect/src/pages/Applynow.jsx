@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 
@@ -7,8 +8,9 @@ const Applynow = () => {
 
   const internship = location.state?.internship;
 
-  // Logged-in student ki details
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const currentUser = JSON.parse(
+    localStorage.getItem("currentUser") || "null"
+  );
 
   const [name, setName] = useState(currentUser?.name || "");
   const [email, setEmail] = useState(currentUser?.email || "");
@@ -39,15 +41,19 @@ const Applynow = () => {
       return;
     }
 
+    if (cleanCoverLetter.length < 20) {
+      alert("Cover letter must contain at least 20 characters.");
+      return;
+    }
+
     const savedApplications = JSON.parse(
-      localStorage.getItem("applications") || "[]",
+      localStorage.getItem("applications") || "[]"
     );
 
-    // Same student ko same internship par dobara apply karne se rokna
     const alreadyApplied = savedApplications.some(
       (application) =>
         application.email?.toLowerCase() === cleanEmail &&
-        String(application.internshipId) === String(internship.id),
+        String(application.internshipId) === String(internship.id)
     );
 
     if (alreadyApplied) {
@@ -71,7 +77,12 @@ const Applynow = () => {
 
     savedApplications.push(newApplication);
 
-    localStorage.setItem("applications", JSON.stringify(savedApplications));
+    localStorage.setItem(
+      "applications",
+      JSON.stringify(savedApplications)
+    );
+
+    window.dispatchEvent(new Event("applicationsUpdated"));
 
     navigate("/applicationsuccess", {
       state: {
@@ -83,37 +94,52 @@ const Applynow = () => {
 
   if (!internship) {
     return (
-      <div className="min-h-screen bg-gray-50 p-10 text-center">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Please select an internship first.
-        </h1>
+      <div className="min-h-screen bg-gray-50 px-4 py-12 sm:px-6">
+        <div className="mx-auto max-w-xl rounded-2xl bg-white p-6 text-center shadow-md sm:p-10">
+          <h1 className="text-xl font-bold text-gray-800 sm:text-2xl">
+            Please select an internship first.
+          </h1>
 
-        <Link
-          to="/internships"
-          className="mt-5 inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
-        >
-          Browse Internships
-        </Link>
+          <Link
+            to="/internships"
+            className="mt-6 inline-block rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+          >
+            Browse Internships
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const stipend = internship.stipend || internship.salary || "Not specified";
+  const stipend =
+    internship.stipend || internship.salary || "Not specified";
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="mx-auto max-w-3xl px-6">
-        <div className="rounded-2xl bg-white p-6 shadow-md sm:p-8">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Apply For Internship
-          </h1>
+    <div className="min-h-screen bg-gray-50 px-3 py-8 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full max-w-3xl">
 
-          <div className="mt-5 rounded-xl bg-blue-50 p-5">
-            <p className="text-xl font-semibold text-blue-700">
+        <div className="rounded-2xl bg-white p-4 shadow-md sm:p-6 md:p-8">
+
+          {/* Page Heading */}
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">
+              Apply For Internship
+            </h1>
+
+            <p className="mt-2 text-sm text-gray-500 sm:text-base">
+              Complete the form below to submit your internship application.
+            </p>
+          </div>
+
+          {/* Internship Information */}
+          <div className="rounded-xl bg-blue-50 p-4 sm:p-5">
+            <p className="text-lg font-bold text-blue-700 sm:text-xl">
               {internship.title}
             </p>
 
-            <p className="mt-1 text-gray-700">{internship.company}</p>
+            <p className="mt-1 text-sm text-gray-700 sm:text-base">
+              {internship.company}
+            </p>
 
             <div className="mt-4 grid grid-cols-1 gap-3 text-sm text-gray-600 sm:grid-cols-2">
               <p>
@@ -127,7 +153,8 @@ const Applynow = () => {
               </p>
 
               <p>
-                <strong>Type:</strong> {internship.type || "Not specified"}
+                <strong>Type:</strong>{" "}
+                {internship.type || "Not specified"}
               </p>
 
               <p>
@@ -136,9 +163,11 @@ const Applynow = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          {/* Application Form */}
+          <form onSubmit={handleSubmit} className="mt-7 space-y-5 sm:mt-8">
+
             <div>
-              <label className="mb-2 block font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-semibold text-gray-700 sm:text-base">
                 Full Name
               </label>
 
@@ -149,12 +178,12 @@ const Applynow = () => {
                 placeholder="Enter your full name"
                 autoComplete="name"
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-base"
               />
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-semibold text-gray-700 sm:text-base">
                 Email Address
               </label>
 
@@ -165,12 +194,12 @@ const Applynow = () => {
                 placeholder="Enter your email"
                 autoComplete="email"
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-base"
               />
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-semibold text-gray-700 sm:text-base">
                 Phone Number
               </label>
 
@@ -184,12 +213,12 @@ const Applynow = () => {
                 pattern="[6-9][0-9]{9}"
                 maxLength={10}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-base"
               />
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-semibold text-gray-700 sm:text-base">
                 Why are you suitable for this internship?
               </label>
 
@@ -201,28 +230,32 @@ const Applynow = () => {
                 minLength={20}
                 maxLength={1000}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full resize-y rounded-lg border border-gray-300 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-base"
               />
 
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-xs text-gray-500 sm:text-sm">
                 Minimum 20 characters.
               </p>
             </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700"
-            >
-              Submit Application
-            </button>
+            {/* Buttons */}
+            <div className="space-y-3 pt-2">
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.99] sm:text-base"
+              >
+                Submit Application
+              </button>
 
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="w-full rounded-lg border border-gray-300 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
-            >
-              Cancel
-            </button>
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 sm:text-base"
+              >
+                Cancel
+              </button>
+            </div>
+
           </form>
         </div>
       </div>
@@ -231,3 +264,4 @@ const Applynow = () => {
 };
 
 export default Applynow;
+

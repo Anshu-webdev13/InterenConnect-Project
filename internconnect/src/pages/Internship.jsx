@@ -96,13 +96,11 @@ const Internship = () => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
 
-  // Load default and admin-added internships
   useEffect(() => {
     const savedInternships = JSON.parse(
       localStorage.getItem("internships") || "[]"
     );
 
-    
     const internshipMap = new Map();
 
     defaultInternships.forEach((item) => {
@@ -134,42 +132,55 @@ const Internship = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Display stipend in both old and new formats
+  // Get stipend
   const getSalary = (item) => {
     if (item.salary) return item.salary;
+
     if (item.stipend) {
       return item.stipend.toLowerCase().includes("month")
         ? item.stipend
         : `${item.stipend}/month`;
     }
+
     return "Not specified";
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-12">
+    <section className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-12">
+
       <div className="mx-auto max-w-7xl">
-        <h1 className="text-center text-4xl font-bold text-gray-800">
-          Find Your Perfect Internship
-        </h1>
 
-        <p className="mt-3 text-center text-gray-600">
-          Explore internships and start building your career.
-        </p>
+        {/* Page Heading */}
+        <div className="text-center">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-blue-600">
+            Explore Opportunities
+          </p>
 
-        {/* Search and category filter */}
-        <div className="mx-auto mt-8 flex max-w-3xl flex-col gap-4 md:flex-row">
+          <h1 className="text-3xl font-bold leading-tight text-gray-800 sm:text-4xl lg:text-5xl">
+            Find Your Perfect Internship
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
+            Explore internships, develop your skills and start building
+            your career with the right opportunity.
+          </p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="mx-auto mt-9 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
+
           <input
             type="text"
-            placeholder="Search internships..."
+            placeholder="Search by title or company..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-base"
           />
 
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="rounded-lg border bg-white px-4 py-3"
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-base"
           >
             <option value="All">All Categories</option>
             <option value="Web Development">Web Development</option>
@@ -186,62 +197,136 @@ const Internship = () => {
               Artificial Intelligence
             </option>
             <option value="Machine Learning">Machine Learning</option>
-            <option value="Design">UI/UX Design</option>
+            <option value="Design">Design</option>
             <option value="UI/UX Design">UI/UX Design</option>
             <option value="Digital Marketing">Digital Marketing</option>
             <option value="Cybersecurity">Cybersecurity</option>
           </select>
+
         </div>
 
-        <p className="mb-5 mt-8 text-gray-600">
-          Showing {filteredInternships.length} internships
-        </p>
+        {/* Results Count */}
+        <div className="mb-5 mt-9 flex flex-wrap items-center justify-between gap-3">
 
-        {/* Internship cards */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-lg font-semibold text-gray-800 sm:text-xl">
+            Available Internships
+          </h2>
+
+          <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
+            {filteredInternships.length} Opportunities
+          </span>
+
+        </div>
+
+        {/* Internship Cards */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
           {filteredInternships.map((item) => (
+
             <div
               key={item.id}
-              className="rounded-xl bg-white p-6 shadow-md transition hover:-translate-y-1 hover:shadow-lg"
+              className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-6"
             >
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
-                {item.category || "General"}
-              </span>
 
-              <h2 className="mt-4 text-xl font-bold text-gray-800">
+              {/* Category */}
+              <div className="flex items-start justify-between gap-2">
+
+                <span className="rounded-full bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700 sm:text-sm">
+                  {item.category || "General"}
+                </span>
+
+                <span className="text-xs font-medium text-green-600">
+                  Open
+                </span>
+
+              </div>
+
+              {/* Title */}
+              <h2 className="mt-5 text-lg font-bold leading-snug text-gray-800 sm:text-xl">
                 {item.title}
               </h2>
 
-              <p className="mt-2 text-gray-600">{item.company}</p>
+              <p className="mt-2 text-sm font-medium text-gray-500">
+                🏢 {item.company}
+              </p>
 
-              <div className="mt-4 space-y-2 text-sm text-gray-600">
+              {/* Details */}
+              <div className="mt-5 space-y-3 text-sm text-gray-600">
+
                 <p>📍 {item.location || "Not specified"}</p>
+
                 <p>🕒 {item.duration || "Not specified"}</p>
+
                 <p>💰 {getSalary(item)}</p>
-                {item.type && <p>💼 {item.type}</p>}
+
+                <p>💼 {item.type || "Not specified"}</p>
+
               </div>
 
+              {/* Skills */}
+              {item.skills && (
+                <div className="mt-5 border-t border-gray-100 pt-4">
+
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Required Skills
+                  </p>
+
+                  <p className="line-clamp-2 text-sm leading-relaxed text-gray-600">
+                    {item.skills}
+                  </p>
+
+                </div>
+              )}
+
+              {/* Button */}
               <button
                 onClick={() =>
                   navigate("/internshipdetails", {
                     state: { internship: item },
                   })
                 }
-                className="mt-6 w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
+                className="mt-auto mt-6 w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 active:scale-95"
               >
-                View Details
+                View Details →
               </button>
+
             </div>
+
           ))}
+
         </div>
 
+        {/* No Results */}
         {filteredInternships.length === 0 && (
-          <p className="mt-10 text-center text-gray-500">
-            No internships found. Try another search.
-          </p>
+
+          <div className="mt-10 rounded-2xl border border-gray-200 bg-white px-5 py-12 text-center">
+
+            <div className="mb-4 text-4xl">🔍</div>
+
+            <h3 className="text-xl font-bold text-gray-800">
+              No Internships Found
+            </h3>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Try another search or select a different category.
+            </p>
+
+            <button
+              onClick={() => {
+                setSearch("");
+                setCategory("All");
+              }}
+              className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
+            >
+              Clear Filters
+            </button>
+
+          </div>
+
         )}
+
       </div>
-    </div>
+    </section>
   );
 };
 

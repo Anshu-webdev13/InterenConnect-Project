@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -5,7 +6,7 @@ const EditProfile = () => {
   const navigate = useNavigate();
 
   const savedProfile = JSON.parse(
-    localStorage.getItem("studentProfile") || "{}",
+    localStorage.getItem("studentProfile") || "{}"
   );
 
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const EditProfile = () => {
     phone: savedProfile.phone || "",
     college: savedProfile.college || "",
     course: savedProfile.course || "",
+    year: savedProfile.year || "",
     skills: savedProfile.skills || "",
   });
 
@@ -27,7 +29,10 @@ const EditProfile = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    localStorage.setItem("studentProfile", JSON.stringify(formData));
+    localStorage.setItem(
+      "studentProfile",
+      JSON.stringify(formData)
+    );
 
     alert("Profile updated successfully!");
     navigate("/studentdashboard");
@@ -36,7 +41,9 @@ const EditProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Edit Profile</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Edit Profile
+        </h1>
 
         <p className="text-gray-600 mb-6">
           Update your personal and academic details.
@@ -46,8 +53,11 @@ const EditProfile = () => {
           onSubmit={handleSubmit}
           className="bg-white p-6 md:p-8 rounded-xl shadow-md space-y-5"
         >
+          {/* Full Name */}
           <div>
-            <label className="block font-medium mb-2">Full Name</label>
+            <label className="block font-medium mb-2">
+              Full Name
+            </label>
             <input
               type="text"
               name="name"
@@ -59,8 +69,11 @@ const EditProfile = () => {
             />
           </div>
 
+          {/* Email */}
           <div>
-            <label className="block font-medium mb-2">Email Address</label>
+            <label className="block font-medium mb-2">
+              Email Address
+            </label>
             <input
               type="email"
               name="email"
@@ -72,8 +85,11 @@ const EditProfile = () => {
             />
           </div>
 
+          {/* Phone */}
           <div>
-            <label className="block font-medium mb-2">Phone Number</label>
+            <label className="block font-medium mb-2">
+              Phone Number
+            </label>
             <input
               type="tel"
               name="phone"
@@ -84,8 +100,11 @@ const EditProfile = () => {
             />
           </div>
 
+          {/* College */}
           <div>
-            <label className="block font-medium mb-2">College Name</label>
+            <label className="block font-medium mb-2">
+              College Name
+            </label>
             <input
               type="text"
               name="college"
@@ -96,8 +115,11 @@ const EditProfile = () => {
             />
           </div>
 
+          {/* Course */}
           <div>
-            <label className="block font-medium mb-2">Course</label>
+            <label className="block font-medium mb-2">
+              Course
+            </label>
             <input
               type="text"
               name="course"
@@ -108,8 +130,31 @@ const EditProfile = () => {
             />
           </div>
 
+          {/* Year */}
           <div>
-            <label className="block font-medium mb-2">Skills</label>
+            <label className="block font-medium mb-2">
+              Academic Year
+            </label>
+            <select
+              name="year"
+              value={formData.year}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg p-3 bg-white outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Your Year</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+
+          {/* Skills */}
+          <div>
+            <label className="block font-medium mb-2">
+              Skills
+            </label>
             <textarea
               name="skills"
               value={formData.skills}
@@ -120,10 +165,11 @@ const EditProfile = () => {
             />
           </div>
 
-          <div className="flex gap-4 pt-2">
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <button
               type="submit"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
             >
               Save Changes
             </button>
@@ -131,7 +177,7 @@ const EditProfile = () => {
             <button
               type="button"
               onClick={() => navigate("/studentdashboard")}
-              className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300"
+              className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
             >
               Cancel
             </button>
