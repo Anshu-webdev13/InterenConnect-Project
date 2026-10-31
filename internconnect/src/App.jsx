@@ -1,27 +1,41 @@
+
 import React from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
+// Components
 import Navbar from "./components/Navbar";
-import Home from "./pages/Home.jsx";
-import Interenship from "./pages/Internship.jsx";
-import Internshipdetails from "./pages/Internshipdetails.jsx";
-import Applynow from "./pages/Applynow.jsx";
-import Applicationsuccess from "./pages/ApplicationSuccess.jsx";
-import MyApplications from "./pages/MyApplications.jsx";
-import StudentDashboard from "./pages/StudentDasboard.jsx";
+
+// Public Pages
+import Home from "./pages/Home";
+import Interenship from "./pages/Internship";
+import Internshipdetails from "./pages/Internshipdetails";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import HowItWorks from "./pages/HowItWorks";
+
+// Student Pages
+import Applynow from "./pages/Applynow";
+import Applicationsuccess from "./pages/Applicationsuccess";
+import MyApplications from "./pages/MyApplications";
+import StudentDashboard from "./pages/StudentDasboard";
 import StudentProfile from "./pages/StudentProfile";
-import EditProfile from "./pages/EditProfile.jsx";
-import Notification from "./pages/Notification.jsx";
+import EditProfile from "./pages/EditProfile";
+import Notification from "./pages/Notification";
 
-import AdminDashboard from "./pages/AdminDashboard.jsx";
-import ManageStudents from "./pages/ManageStudents.jsx";
+// Company Pages
+import CompanyDashboard from "./pages/CompanyDashboard";
+import ManageInternships from "./pages/ManageInternships";
 
-import CompanyDashboard from "./pages/CompanyDashboard.jsx";
-import ManageInternships from "./pages/ManageInternships.jsx";
-
-import Register from "./pages/Register.jsx";
-import Login from "./pages/Login.jsx";
-import HowItWorks from "./pages/HowItWorks.jsx";
+// Admin Pages
+import AdminDashboard from "./pages/AdminDashboard";
+import ManageStudents from "./pages/ManageStudents";
+import ManageCompanies from "./pages/ManageCompanies";
+import AdminManageInternships from "./pages/AdminManageInternships";
 
 // Protected Route
 const ProtectedRoute = ({ allowedRole, children }) => {
@@ -30,27 +44,36 @@ const ProtectedRoute = ({ allowedRole, children }) => {
   let currentUser = null;
 
   try {
-    currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+    currentUser = JSON.parse(
+      localStorage.getItem("currentUser") || "null"
+    );
   } catch (error) {
-    currentUser = null;
+    console.error("User data error:", error);
+    localStorage.removeItem("currentUser");
   }
 
+  // Check login
   if (!currentUser) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
-  const userRole = currentUser.role || "student";
-
-  if (userRole !== allowedRole) {
-    if (userRole === "admin") {
+  // Check user role
+  if (currentUser.role !== allowedRole) {
+    if (currentUser.role === "admin") {
       return <Navigate to="/admindashboard" replace />;
     }
 
-    if (userRole === "company") {
+    if (currentUser.role === "company") {
       return <Navigate to="/companydashboard" replace />;
     }
 
-    if (userRole === "student") {
+    if (currentUser.role === "student") {
       return <Navigate to="/studentdashboard" replace />;
     }
 
@@ -62,17 +85,37 @@ const ProtectedRoute = ({ allowedRole, children }) => {
 
 const App = () => {
   return (
-    <div>
+    <>
       <Navbar />
 
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/internships" element={<Interenship />} />
-        <Route path="/internshipdetails" element={<Internshipdetails />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/howitworks" element={<HowItWorks />} />
+
+        <Route
+          path="/internships"
+          element={<Interenship />}
+        />
+
+        <Route
+          path="/internshipdetails"
+          element={<Internshipdetails />}
+        />
+
+        <Route
+          path="/howitworks"
+          element={<HowItWorks />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
         {/* Student Routes */}
         <Route
@@ -176,10 +219,31 @@ const App = () => {
           }
         />
 
-        {/* Unknown Routes */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="/manage-companies"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ManageCompanies />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/adminmanageinternships"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminManageInternships />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Page Not Found */}
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
       </Routes>
-    </div>
+    </>
   );
 };
 

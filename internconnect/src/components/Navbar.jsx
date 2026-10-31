@@ -1,231 +1,321 @@
 
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+
+const getCurrentUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("currentUser")) || null;
+  } catch {
+    return null;
+  }
+};
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
+  const [currentUser, setCurrentUser] = useState(getCurrentUser);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("currentUser") || "null");
-    } catch {
-      return null;
-    }
-  });
+  const [managementOpen, setManagementOpen] = useState(false);
 
   useEffect(() => {
-    const updateUser = () => {
-      try {
-        setCurrentUser(
-          JSON.parse(localStorage.getItem("currentUser") || "null")
-        );
-      } catch {
-        setCurrentUser(null);
-      }
-    };
+    const updateUser = () => setCurrentUser(getCurrentUser());
 
     window.addEventListener("userLogin", updateUser);
     window.addEventListener("userLogout", updateUser);
+    window.addEventListener("storage", updateUser);
 
     return () => {
       window.removeEventListener("userLogin", updateUser);
       window.removeEventListener("userLogout", updateUser);
+      window.removeEventListener("storage", updateUser);
     };
   }, []);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     setCurrentUser(null);
-    setMenuOpen(false);
-
+    closeMenu();
     window.dispatchEvent(new Event("userLogout"));
     navigate("/");
   };
 
-  const isAdmin = currentUser?.role === "admin";
-  const isCompany = currentUser?.role === "company";
-  const isStudent = currentUser?.role === "student";
-
-  const getLinkStyle = (path) => {
-    const isActive =
-      location.pathname === path ||
-      (path !== "/" && location.pathname.startsWith(path));
-
-    return `whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold transition-all duration-200 ${
-      isActive
-        ? "bg-blue-50 text-blue-700"
-        : "text-gray-600 hover:bg-gray-50 hover:text-blue-600"
-    }`;
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setManagementOpen(false);
   };
 
-  const NavLink = ({ to, children }) => (
-    <Link to={to} className={getLinkStyle(to)}>
-      {children}
-    </Link>
-  );
+  const linkClass = ({ isActive }) =>
+    `whitespace-nowrap rounded-lg px-3 py-2.5 text-[17px] font-semibold transition-all duration-200 ${
+      isActive
+        ? "bg-blue-50 text-blue-700"
+        : "text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+    }`;
 
-  const NavigationLinks = () => (
-    <>
-      <NavLink to="/">Home</NavLink>
+  const role = currentUser?.role;
 
-      {!currentUser && (
-        <>
-          <NavLink to="/internships">Internships</NavLink>
-          <NavLink to="/howitworks">How It Works</NavLink>
-        </>
-      )}
+  const guestLinks = [
+    { name: "Home", path: "/" },
+    { name: "Internships", path: "/internships" },
+    { name: "How It Works", path: "/howitworks" },
+  ];
 
-      {isAdmin && (
-        <>
-          <NavLink to="/admindashboard">Admin Dashboard</NavLink>
-          <NavLink to="/manage-internships">Manage Internships</NavLink>
-          <NavLink to="/managestudents">Manage Students</NavLink>
-        </>
-      )}
+  const studentLinks = [
+    { name: "Dashboard", path: "/studentdashboard" },
+    { name: "Internships", path: "/internships" },
+    { name: "My Applications", path: "/myapplications" },
+    { name: "Profile", path: "/studentprofile" },
+    { name: "Notifications", path: "/notifications" },
+  ];
 
-      {isStudent && (
-        <>
-          <NavLink to="/internships">Internships</NavLink>
-          <NavLink to="/studentdashboard">Dashboard</NavLink>
-          <NavLink to="/myapplications">My Applications</NavLink>
-          <NavLink to="/studentprofile">Profile</NavLink>
-          <NavLink to="/notifications">Notifications</NavLink>
-        </>
-      )}
+  const companyLinks = [
+    { name: "Dashboard", path: "/companydashboard" },
+    { name: "Manage Internships", path: "/manage-internships" },
+  ];
 
-      {isCompany && (
-        <>
-          <NavLink to="/companydashboard">Company Dashboard</NavLink>
-          <NavLink to="/manage-internships">Manage Internships</NavLink>
-          <NavLink to="/company-applications">Applications</NavLink>
-        </>
-      )}
-    </>
-  );
+  const adminLinks = [
+    { name: "Dashboard", path: "/admindashboard" },
+  ];
+
+  let links = guestLinks;
+
+  if (role === "student") links = studentLinks;
+  if (role === "company") links = companyLinks;
+  if (role === "admin") links = adminLinks;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
-      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px] px-6 lg:px-8">
 
-        <div className="flex min-h-[76px] items-center justify-between gap-4">
+        <div className="flex min-h-[82px] items-center justify-between gap-5">
 
           {/* Logo */}
           <Link
             to="/"
-            onClick={() => setMenuOpen(false)}
-            className="flex shrink-0 items-center text-xl font-extrabold tracking-tight sm:text-2xl"
+            onClick={closeMenu}
+            className="shrink-0 text-[30px] font-extrabold tracking-tight text-blue-700"
           >
-            <span className="text-blue-600">Intern</span>
-            <span className="text-gray-800">Connect</span>
-            <span className="ml-1.5 h-2 w-2 rounded-full bg-blue-600"></span>
+            Intern<span className="text-gray-800">Connect</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="ml-auto hidden items-center gap-4 2xl:flex">
+          <div className="hidden items-center gap-2 xl:flex">
 
-            <div className="flex items-center gap-1">
-              <NavigationLinks />
-            </div>
+            {links.map((link) => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className={linkClass}
+              >
+                {link.name}
+              </NavLink>
+            ))}
 
-            <div className="flex shrink-0 items-center gap-3 border-l border-gray-200 pl-4">
-              {currentUser ? (
+            {/* Admin Management */}
+            {role === "admin" && (
+              <div className="relative">
+                <button
+                  onClick={() => setManagementOpen(!managementOpen)}
+                  className="whitespace-nowrap rounded-lg px-3 py-2.5 text-[17px] font-semibold text-gray-700 transition hover:bg-gray-100 hover:text-blue-700"
+                >
+                  Management
+                  <span className="ml-2 text-xs">▼</span>
+                </button>
+
+                {managementOpen && (
+                  <div className="absolute right-0 top-14 z-50 w-60 rounded-xl border border-gray-100 bg-white p-2 shadow-xl">
+
+                    <NavLink
+                      to="/adminmanageinternships"
+                      onClick={() => setManagementOpen(false)}
+                      className={linkClass}
+                    >
+                      Manage Internships
+                    </NavLink>
+
+                    <NavLink
+                      to="/managestudents"
+                      onClick={() => setManagementOpen(false)}
+                      className={linkClass}
+                    >
+                      Manage Students
+                    </NavLink>
+
+                    <NavLink
+                      to="/manage-companies"
+                      onClick={() => setManagementOpen(false)}
+                      className={linkClass}
+                    >
+                      Manage Companies
+                    </NavLink>
+
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Guest Buttons */}
+            {!currentUser && (
+              <div className="ml-4 flex shrink-0 items-center gap-3 border-l border-gray-200 pl-4">
+
+                <Link
+                  to="/login"
+                  className="rounded-lg px-5 py-3 text-[17px] font-bold text-blue-700 transition hover:bg-blue-50"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="rounded-lg bg-blue-700 px-6 py-3 text-[17px] font-bold text-white shadow-sm transition hover:bg-blue-800"
+                >
+                  Register
+                </Link>
+
+              </div>
+            )}
+
+            {/* Logged-in User */}
+            {currentUser && (
+              <div className="ml-3 flex shrink-0 items-center gap-3 border-l border-gray-200 pl-4">
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-700">
+                  {currentUser.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+
+                <div className="max-w-[135px]">
+                  <p className="truncate text-base font-bold text-gray-800">
+                    {currentUser.name || currentUser.companyName || "User"}
+                  </p>
+                  <p className="text-sm font-medium capitalize text-gray-500">
+                    {role}
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg bg-red-50 px-4 py-3 text-base font-bold text-red-600 transition hover:bg-red-100"
+                >
+                  Logout
+                </button>
+
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="rounded-lg border border-gray-200 p-2.5 text-gray-700 transition hover:bg-gray-100 xl:hidden"
+            aria-label="Toggle navigation"
+          >
+            {menuOpen ? (
+              <span className="text-2xl">✕</span>
+            ) : (
+              <span className="text-2xl">☰</span>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        {menuOpen && (
+          <div className="border-t border-gray-100 py-4 xl:hidden">
+            <div className="flex flex-col gap-2">
+
+              {links.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  onClick={closeMenu}
+                  className={linkClass}
+                >
+                  {link.name}
+                </NavLink>
+              ))}
+
+              {/* Admin Mobile Management */}
+              {role === "admin" && (
                 <>
-                  <span className="max-w-[150px] truncate text-sm font-semibold text-gray-700">
-                    Hi, {currentUser.name}
-                  </span>
+                  <p className="px-3 pt-3 text-sm font-bold uppercase tracking-wide text-gray-400">
+                    Management
+                  </p>
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="rounded-lg bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white"
+                  <NavLink
+                    to="/adminmanageinternships"
+                    onClick={closeMenu}
+                    className={linkClass}
                   >
-                    Logout
-                  </button>
+                    Manage Internships
+                  </NavLink>
+
+                  <NavLink
+                    to="/managestudents"
+                    onClick={closeMenu}
+                    className={linkClass}
+                  >
+                    Manage Students
+                  </NavLink>
+
+                  <NavLink
+                    to="/manage-companies"
+                    onClick={closeMenu}
+                    className={linkClass}
+                  >
+                    Manage Companies
+                  </NavLink>
                 </>
-              ) : (
-                <>
+              )}
+
+              {/* Mobile Guest Buttons */}
+              {!currentUser ? (
+                <div className="mt-3 flex flex-col gap-3 border-t border-gray-100 pt-4">
+
                   <Link
                     to="/login"
-                    className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 hover:text-blue-600"
+                    onClick={closeMenu}
+                    className="rounded-lg border border-blue-700 px-4 py-3 text-center text-lg font-bold text-blue-700 transition hover:bg-blue-50"
                   >
                     Login
                   </Link>
 
                   <Link
                     to="/register"
-                    className="whitespace-nowrap rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                    onClick={closeMenu}
+                    className="rounded-lg bg-blue-700 px-4 py-3 text-center text-lg font-bold text-white transition hover:bg-blue-800"
                   >
                     Register
                   </Link>
-                </>
+
+                </div>
+              ) : (
+                <div className="mt-3 border-t border-gray-100 pt-4">
+
+                  <div className="mb-4 flex items-center gap-3 px-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-700">
+                      {currentUser.name?.charAt(0)?.toUpperCase() || "U"}
+                    </div>
+
+                    <div>
+                      <p className="text-base font-bold text-gray-800">
+                        {currentUser.name || currentUser.companyName || "User"}
+                      </p>
+                      <p className="text-sm capitalize text-gray-500">
+                        {role}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full rounded-lg bg-red-50 px-4 py-3 text-base font-bold text-red-600 transition hover:bg-red-100"
+                  >
+                    Logout
+                  </button>
+
+                </div>
               )}
             </div>
           </div>
-
-          {/* Mobile / Tablet Menu Button */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-2xl text-gray-700 transition hover:bg-gray-100 2xl:hidden"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-          >
-            {menuOpen ? "×" : "☰"}
-          </button>
-        </div>
-
-        {/* Mobile and Tablet Navigation */}
-        {menuOpen && (
-          <div className="border-t border-gray-100 py-5 2xl:hidden">
-            <div className="flex flex-col gap-2">
-
-              <NavigationLinks />
-
-              <div className="mt-3 border-t border-gray-100 pt-5">
-
-                {currentUser ? (
-                  <div className="flex flex-col gap-3">
-                    <p className="px-3 text-sm font-semibold text-blue-700">
-                      Logged in as: {currentUser.name}
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full rounded-lg bg-red-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-600"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    <Link
-                      to="/login"
-                      className="rounded-lg border border-gray-200 px-5 py-3 text-center text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                    >
-                      Login
-                    </Link>
-
-                    <Link
-                      to="/register"
-                      className="rounded-lg bg-blue-600 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
-                    >
-                      Register
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         )}
-
       </div>
     </nav>
   );
